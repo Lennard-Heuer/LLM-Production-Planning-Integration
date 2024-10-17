@@ -1,0 +1,187 @@
+from collections import deque
+    from dataclasses import dataclass, field
+    from typing import Any, List
+
+    @dataclass
+    class Part:
+        id: str        # unique part identifier
+        oh: float      # on hand
+        alloc: float   # allocated
+        ss: float      # safety stock
+        prod_time: List[int]  # production times for workstations
+        ls: float      # lot size
+        scrap: float = None   # percentage of component/assembly expected to be scrapped, represented as a decimal; 1.2% -> 0.012
+        name: str = None     # descriptive part name (does not affect calculations)
+        desc: str = None      # part description (does not affect calculations)
+        sr: dict = field(default_factory=dict)         # scheduled receipt
+        bom: dict = field(default_factory=dict)        # bill of materials
+        mps: dict = field(default_factory=dict)        # manufacturing production schedule -> [time period]:[quantity]
+        mrp: dict = field(default_factory=dict)        # order release schedule
+        avail: dict = field(default_factory=dict)      # available per time period
+        parents: List['Part'] = field(default_factory=list)    # all parent components
+        rem_parents: int = 0 # total remaining parents to be processed
+        queued: bool = False
+
+    class Solver:
+        def __init__(self, capacity_matrix):
+            self.capacity_matrix = capacity_matrix  # Capacity for workstations
+            self.all_parts = {}
+            self.orphans = []
+            self.min_period = 1
+            self.max_period = 1
+            self.current_level = deque()
+
+        def process_part(self, part: Part) -> None:
+            print(f"Processing part {part.id}")
+            available = part.oh - part.alloc
+            print(f"Initial available inventory: {available}")
+
+            for period in range(self.min_period, self.max_period + 1):
+                available += part.sr.get(period, 0.0)
+                needed_qt = part.mps.get(period, 0.0)
+                print(f"Period: {period}, MPS demand: {needed_qt}, Available: {available}")
+
+                if needed_qt:
+                    leftover = available - needed_qt
+                    if leftover < part.ss:
+                        when_needed = max(1, period - part.prod_time[0])  # Ensure `when_needed` stays within valid periods
+                        if when_needed < self.min_period:
+                            self.min_period = when_needed
+
+                        # Check if there's enough capacity at each workstation
+                        sufficient_capacity = True
+                        for workstation, prod_time in enumerate(part.prod_time):
+                            if self.capacity_matrix[workstation][when_needed - 1] < needed_qt:
+                                print(f"Insufficient capacity in workstation {workstation + 1} for part {part.id} in period {when_needed}")
+                                sufficient_capacity = False
+                                break
+                        
+                        if sufficient_capacity and period > 0:  # Only place an order if there's enough capacity
+                            short = part.ss - leftover
+                            order = (short // part.ls + (short % part.ls > 0)) * part.ls
+                            part.mrp[when_needed] = order
+                            available += order
+
+                            # Deduct capacity from each workstation
+                            for workstation, prod_time in enumerate(part.prod_time):
+                                self.capacity_matrix[workstation][when_needed - 1] -= order
+
+                            print(f"Placing order for {part.id}: {order} units, for period {when_needed}")
+
+                            # Propagate demand to child parts
+                            for child_id, amount in part.bom.items():
+                                child = self.all_parts[child_id]
+                                child.mps[when_needed] = amount * order + child.mps.get(when_needed, 0)
+                                print(f"Child demand updated: {child_id}, Quantity: {child.mps[when_needed]}")
+                                if not child.queued:
+                                    self.current_level.append(child)
+                                    child.queued = True
+                    available -= needed_qt
+
+                part.avail[period] = available
+
+
+        def orphan_check(self) -> None:
+            for part in self.all_parts.values():
+                part.queued = False
+                if part.rem_parents == 0:
+                    self.orphans.append(part)
+                    self.current_level.append(part)
+                    part.queued = True
+
+        def solve(self) -> tuple[dict, dict]:
+            mrp = {}
+            now_available = {}
+            if not self.all_parts:
+                raise ValueError("There are no parts. Please import an IMF file.")
+            self.orphan_check()
+            if not self.orphans:
+                raise ValueError("There are no independent parent parts. Please import valid IMF and BOM files.")
+            while self.current_level:
+                current_part = self.current_level.popleft()
+                self.process_part(current_part)
+            for id, part in self.all_parts.items():
+                mrp[id] = mrp_to_list(part, self)
+                now_available[id] = avail_to_list(part, self)
+            return mrp, now_available
+
+    # Helper functions to convert results to lists
+    def mrp_to_list(part: Part, solver: Solver) -> list:
+        mrp_lst = []
+        for period in range(solver.min_period, solver.max_period + 1):
+            qt = part.mrp.get(period, 0.0)
+            mrp_lst.append(qt)
+        return mrp_lst
+
+    def avail_to_list(part: Part, solver: Solver) -> list:
+        avail_lst = []
+        for period in range(solver.min_period, solver.max_period + 1):
+            qt = part.avail.get(period, 0.0)
+            avail_lst.append(qt)
+        return avail_lst
+
+    # Initialize the solver with the appropriate data
+    def initialize_solver():
+        initial_inventory = [0, 0, 0, 0, 0]
+        safetyStock = [10, 15, 20, 10, 5]
+        lotSize = [500, 5, 5000, 5, 5000]
+        production_times = [[2, 3], [1, 2], [3, 4], [1, 4], [2, 1]]  # production times for parts
+        capacity_matrix = [[111110, 111110, 111110, 111110], [111110, 1110, 1110, 11110]]  # capacity per workstation
+
+        mps_data = {
+            1: {'1': 1032.5, '2': 702.5, '3': 40.0, '4': 0.0, '5': 0.0},
+            2: {'1': 2607.5, '2': 2607.5, '3': 180.0, '4': 0.0, '5': 0.0},
+            3: {'1': 11110.0, '2': 1110.0, '3': 1110.0, '4': 0.0, '5': 0.0},
+            4: {'1': 1110.0, '2': 1110.0, '3': 1110.0, '4': 0.0, '5': 0.0}
+        }
+        bom_data = {
+            'P1': {'P4': 2, 'P5': 1},
+            'P2': {'P4': 1, 'P5': 1},
+            'P3': {'P4': 3, 'P5': 2}
+        }
+
+        solver = Solver(capacity_matrix)
+
+        part_ids = ['P1', 'P2', 'P3', 'P4', 'P5']
+
+        # Manually add parts to the solver
+        for i, part_id in enumerate(part_ids):
+            new_part = Part(
+                id=part_id,
+                name="Part " + part_id,
+                desc="Description for " + part_id,
+                oh=initial_inventory[i],
+                alloc=0,
+                ss=safetyStock[i],
+                prod_time=production_times[i],  # Use production times
+                ls=lotSize[i],
+                sr={}
+            )
+            solver.all_parts[new_part.id] = new_part
+
+        # Manually load the MPS data into the solver
+        for period in mps_data:
+            for part_id, quantity in mps_data[period].items():
+                part = solver.all_parts[part_ids[int(part_id) - 1]]
+                part.mps[period] = quantity
+                solver.min_period = min(solver.min_period, period)
+                solver.max_period = max(solver.max_period, period)
+
+        # Manually load the BOM data into the solver
+        for parent_id, components in bom_data.items():
+            parent = solver.all_parts[parent_id]
+            for child_id, qty in components.items():
+                child = solver.all_parts[child_id]
+                child.rem_parents += 1
+                child.parents.append(parent)
+                parent.bom[child_id] = qty
+
+        return solver
+
+    solver = initialize_solver()
+    # Solve the MRP
+    mrp, now_available = solver.solve()
+
+    # Output the results
+    print("MRP Order Release Schedule:", mrp)
+    print("Available to Promise (ATP) Inventory:", now_available)
