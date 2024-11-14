@@ -977,109 +977,70 @@ Constraints:
 5. Unique Setup Constraint: Only one product can be set up at any given time.
 """
 
-import numpy as np
-import pyomo.environ as pyo
+from pulp import LpMaximize, LpProblem, LpVariable, lpSum, LpBinary, LpStatus
 
 def production_optimization_with_setup(
     time_horizon, products, workstations_total, profit, holding_costs, max_demand,
     min_sales, capacity, initial_inventory, production_time, setup_cost
 ):
-    # Pyomo model instantiation
-    model = pyo.ConcreteModel()
-
-    # Sets
-    model.T = pyo.Set(initialize=range(time_horizon))
-    model.P = pyo.Set(initialize=products)
-    model.W = pyo.Set(initialize=range(workstations_total))
-
-    # Parameters
-    model.profit = pyo.Param(model.P, initialize=dict(zip(products, profit)))
-    model.holding_costs = pyo.Param(model.P, initialize=dict(zip(products, holding_costs)))
-    model.max_demand = pyo.Param(model.P, model.T, initialize={(p, t): max_demand[products.index(p)][t] for p in products for t in range(time_horizon)})
-    model.min_sales = pyo.Param(model.P, model.T, initialize={(p, t): min_sales[products.index(p)][t] for p in products for t in range(time_horizon)})
-    model.capacity = pyo.Param(model.W, model.T, initialize={(w, t): capacity[w][t] for w in range(workstations_total) for t in range(time_horizon)})
-    model.initial_inventory = pyo.Param(model.P, initialize=dict(zip(products, initial_inventory)))
-    model.production_time = pyo.Param(model.P, model.W, initialize={(p, w): production_time[products.index(p)][w] for p in products for w in range(workstations_total)})
-    model.setup_cost = pyo.Param(model.P, initialize=dict(zip(products, setup_cost)))
+    # Initialize the model
+    problem = LpProblem("Production_Optimization_with_Setup", LpMaximize)
 
     # Decision Variables
-    model.X = pyo.Var(model.P, model.T, within=pyo.NonNegativeReals)  # Production amounts
-    model.S = pyo.Var(model.P, model.T, within=pyo.NonNegativeReals)  # Sales amounts
-    model.I = pyo.Var(model.P, model.T, within=pyo.NonNegativeReals)  # Inventory levels
-    model.Y = pyo.Var(model.P, model.T, within=pyo.Binary)  # Setup decision
+    X = [[LpVariable(f"X_{p}_{t}", lowBound=0) for t in range(time_horizon)] for p in range(len(products))]  # Production amounts
+    S = [[LpVariable(f"S_{p}_{t}", lowBound=0) for t in range(time_horizon)] for p in range(len(products))]  # Sales amounts
+    I = [[LpVariable(f"I_{p}_{t}", lowBound=0) for t in range(time_horizon)] for p in range(len(products))]  # Inventory levels
+    Y = [[LpVariable(f"Y_{p}_{t}", cat=LpBinary) for t in range(time_horizon)] for p in range(len(products))]  # Setup decision
 
     # Objective Function: Maximize profit minus holding and setup costs
-    def total_profit(model):
-        profit_term = sum(model.profit[p] * model.S[p, t] for p in model.P for t in model.T)
-        holding_cost_term = sum(model.holding_costs[p] * model.I[p, t] for p in model.P for t in model.T)
-        setup_cost_term = sum(model.setup_cost[p] * model.Y[p, t] for p in model.P for t in model.T)
-        return profit_term - holding_cost_term - setup_cost_term
-
-    model.obj = pyo.Objective(rule=total_profit, sense=pyo.maximize)
+    profit_term = lpSum(profit[p] * S[p][t] for p in range(len(products)) for t in range(time_horizon))
+    holding_cost_term = lpSum(holding_costs[p] * I[p][t] for p in range(len(products)) for t in range(time_horizon))
+    setup_cost_term = lpSum(setup_cost[p] * Y[p][t] for p in range(len(products)) for t in range(time_horizon))
+    problem += profit_term - holding_cost_term - setup_cost_term
 
     # Constraints
-    def sales_constraints(model, p, t):
-        return pyo.inequality(model.min_sales[p, t], model.S[p, t], model.max_demand[p, t])
+    for p in range(len(products)):
+        for t in range(time_horizon):
+            # Sales Constraints: Ensure sales are within minimum and maximum bounds
+            problem += S[p][t] >= min_sales[p][t]
+            problem += S[p][t] <= max_demand[p][t]
 
-    model.sales_constraints = pyo.Constraint(model.P, model.T, rule=sales_constraints)
+            # Inventory Balance Constraints
+            if t == 0:
+                problem += I[p][t] == initial_inventory[p] + X[p][t] - S[p][t]
+            else:
+                problem += I[p][t] == I[p][t - 1] + X[p][t] - S[p][t]
 
-    def inventory_balance(model, p, t):
-        if t == 0:
-            return model.I[p, t] == model.initial_inventory[p] + model.X[p, t] - model.S[p, t]
-        else:
-            return model.I[p, t] == model.I[p, t - 1] + model.X[p, t] - model.S[p, t]
+            # Production Setup Constraints
+            problem += X[p][t] <= Y[p][t] * max_demand[p][t]
 
-    model.inventory_balance = pyo.Constraint(model.P, model.T, rule=inventory_balance)
+    # Capacity Constraints
+    for w in range(workstations_total):
+        for t in range(time_horizon):
+            problem += lpSum(production_time[p][w] * X[p][t] for p in range(len(products))) <= capacity[w][t]
 
-    def capacity_constraints(model, w, t):
-        return sum(model.production_time[p, w] * model.X[p, t] for p in model.P) <= model.capacity[w, t]
+    # Unique Setup Constraint: Only one product can be set up at any given time
+    for t in range(time_horizon):
+        problem += lpSum(Y[p][t] for p in range(len(products))) <= 1
 
-    model.capacity_constraints = pyo.Constraint(model.W, model.T, rule=capacity_constraints)
+    # Solve the problem
+    problem.solve()
 
-    def production_setup_constraints(model, p, t):
-        return model.X[p, t] <= model.Y[p, t] * model.max_demand[p, t]
+    # Collect Results
+    Produced = [[X[p][t].varValue for t in range(time_horizon)] for p in range(len(products))]
+    Sold = [[S[p][t].varValue for t in range(time_horizon)] for p in range(len(products))]
+    Inventory = [[I[p][t].varValue for t in range(time_horizon)] for p in range(len(products))]
+    Setup = [[Y[p][t].varValue for t in range(time_horizon)] for p in range(len(products))]
+    Profit = problem.objective.value()
 
-    model.production_setup_constraints = pyo.Constraint(model.P, model.T, rule=production_setup_constraints)
-
-    def unique_setup_constraint(model, t):
-        return sum(model.Y[p, t] for p in model.P) <= 1
-
-    model.unique_setup_constraint = pyo.Constraint(model.T, rule=unique_setup_constraint)
-
-    # Solve the model
-    solver = pyo.SolverFactory("cbc")
-    solver.solve(model, tee=True)
-
-
-    workstation_usage = [[0] * time_horizon for _ in range(workstations_total)]
-
-
-    # Output results and workstation usage calculation
+    # Calculate workstation usage as a percentage
     workstation_usage = [
         [
-            sum(model.production_time[p, w] * model.X[p, t].value / model.capacity[w, t] for p in model.P) * 100
-            if model.capacity[w, t] > 0 else 0
-            for t in model.T
+            sum(production_time[p][w] * Produced[p][t] / capacity[w][t] * 100 if capacity[w][t] > 0 else 0
+                for p in range(len(products)))
+            for t in range(time_horizon)
         ]
-        for w in model.W
+        for w in range(workstations_total)
     ]
 
-    # Print results
-    print("Optimal production plan (X):")
-    for p in model.P:
-        for t in model.T:
-            print(f"Product {p}, Month {t + 1}: {model.X[p, t].value:.2f}")
-
-    print("\nBinary setup decisions (Y):")
-    for p in model.P:
-        for t in model.T:
-            print(f"Product {p}, Month {t + 1}: {int(model.Y[p, t].value)}")
-
-    print("\nInventory levels (I):")
-    for p in model.P:
-        for t in model.T:
-            print(f"Product {p}, Month {t + 1}: {model.I[p, t].value:.2f}")
-
-    print(f"\nTotal Profit: {pyo.value(model.obj):.2f}")
-
-    return model, workstation_usage
+    return problem, workstation_usage
