@@ -28,7 +28,7 @@ min_sales: Minimum sales required for each product in each period.
 production_time: Production time required for each product on each workstation.
 
 
-3. Model: Function to optimize aggregate procution planning with multiple products - incl. Capacitated ressorces
+3. Model: Function to optimize aggregate procution planning with multiple products - incl. Capacitated resorces
 
 Parameters:
 
@@ -42,7 +42,7 @@ products_total: Total number of products.
 workstations_total: Total number of workstations.
 min_sales: Minimum sales required for each product in each period.
 production_time: Production time required for each product on each workstation.
-ressources_total: Total number of resources.
+resources_total: Total number of resources.
 resource_requirement: Resource requirement per product for each resource.
 resource_capacity: Resource capacity available for each period.
 
