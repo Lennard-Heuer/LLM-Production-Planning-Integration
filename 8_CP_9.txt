@@ -1,0 +1,106 @@
+"""
+9. Model: Production Planning with Setup and Capacity Constraints
+
+Parameters:
+
+time_horizon: Total number of periods (planning horizon).
+products: List of products.
+workstations_total: Total number of workstations.
+
+profit[i]: Profit per unit of product i.
+holding_costs[i]: Holding cost per unit of product i.
+max_demand[i][t]: Maximum demand for product i in period t.
+min_sales[i][t]: Minimum sales required for product i in period t.
+workstation_capacity[w][t]: Capacity of workstation w in period t.
+initial_inventory[i]: Initial inventory of product i at the start of period 1.
+
+production_time[i][w]: Time required on workstation w to produce one unit of product i.
+setup_cost[i]: Setup cost for switching to product i.
+
+Decision Variables:
+
+X[i][t]: Amount of product i produced in period t.
+S[i][t]: Amount of product i sold in period t.
+I[i][t]: Inventory of product i at the end of period t.
+Y[i][t]: Binary setup variable for product i in period t (1 if setup is active, 0 otherwise).
+
+Objective:
+
+Maximize the total profit across all products and periods, minus holding costs and setup costs.
+
+Constraints:
+
+1. Sales Constraints: Ensure that the sales of each product are within the minimum and maximum demand bounds.
+2. Inventory Balance: Ensure that inventory in each period reflects production, previous inventory, and sales.
+3. Capacity Constraints: Ensure that total production does not exceed the capacity of the workstations in each period.
+4. Production Setup Constraints: Production is allowed only if the setup variable is active for the product in the period.
+5. Unique Setup Constraint: Only one product can be set up at any given time.
+"""
+
+from pulp import LpMaximize, LpProblem, LpVariable, lpSum, LpBinary, LpStatus
+
+def production_optimization_with_setup(
+    time_horizon, products, workstations_total, profit, holding_costs, max_demand,
+    min_sales, workstation_capacity, initial_inventory, production_time, setup_cost
+):
+    # Initialize the model
+    problem = LpProblem("Production_Optimization_with_Setup", LpMaximize)
+
+    # Decision Variables
+    X = [[LpVariable(f"X_{p}_{t}", lowBound=0) for t in range(time_horizon)] for p in range(len(products))]  # Production amounts
+    S = [[LpVariable(f"S_{p}_{t}", lowBound=0) for t in range(time_horizon)] for p in range(len(products))]  # Sales amounts
+    I = [[LpVariable(f"I_{p}_{t}", lowBound=0) for t in range(time_horizon)] for p in range(len(products))]  # Inventory levels
+    Y = [[LpVariable(f"Y_{p}_{t}", cat=LpBinary) for t in range(time_horizon)] for p in range(len(products))]  # Setup decision
+
+    # Objective Function: Maximize profit minus holding and setup costs
+    profit_term = lpSum(profit[p] * S[p][t] for p in range(len(products)) for t in range(time_horizon))
+    holding_cost_term = lpSum(holding_costs[p] * I[p][t] for p in range(len(products)) for t in range(time_horizon))
+    setup_cost_term = lpSum(setup_cost[p] * Y[p][t] for p in range(len(products)) for t in range(time_horizon))
+    problem += profit_term - holding_cost_term - setup_cost_term
+
+    # Constraints
+    for p in range(len(products)):
+        for t in range(time_horizon):
+            # Sales Constraints: Ensure sales are within minimum and maximum bounds
+            problem += S[p][t] >= min_sales[p][t]
+            problem += S[p][t] <= max_demand[p][t]
+
+            # Inventory Balance Constraints
+            if t == 0:
+                problem += I[p][t] == initial_inventory[p] + X[p][t] - S[p][t]
+            else:
+                problem += I[p][t] == I[p][t - 1] + X[p][t] - S[p][t]
+
+            # Production Setup Constraints
+            problem += X[p][t] <= Y[p][t] * max_demand[p][t]
+
+    # Capacity Constraints
+    for w in range(workstations_total):
+        for t in range(time_horizon):
+            problem += lpSum(production_time[p][w] * X[p][t] for p in range(len(products))) <= workstation_capacity[w][t]
+
+    # Unique Setup Constraint: Only one product can be set up at any given time
+    for t in range(time_horizon):
+        problem += lpSum(Y[p][t] for p in range(len(products))) <= 1
+
+    # Solve the problem
+    problem.solve()
+
+    # Collect Results
+    Produced = [[X[p][t].varValue for t in range(time_horizon)] for p in range(len(products))]
+    Sold = [[S[p][t].varValue for t in range(time_horizon)] for p in range(len(products))]
+    Inventory = [[I[p][t].varValue for t in range(time_horizon)] for p in range(len(products))]
+    Setup = [[Y[p][t].varValue for t in range(time_horizon)] for p in range(len(products))]
+    Profit = problem.objective.value()
+
+    # Calculate workstation usage as a percentage
+    workstation_usage = [
+        [
+            sum(production_time[p][w] * Produced[p][t] / workstation_capacity[w][t] * 100 if capacity[w][t] > 0 else 0
+                for p in range(len(products)))
+            for t in range(time_horizon)
+        ]
+        for w in range(workstations_total)
+    ]
+
+    return problem, workstation_usage

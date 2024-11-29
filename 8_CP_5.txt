@@ -1,0 +1,95 @@
+"""
+5. Model: Function to optimize aggregate procution planning with multiple products - incl. Backorders
+
+Parameters:
+
+m: Total number of products.
+n: Total number of workstations.
+bar_t: Planning horizon (number of periods).
+max_demand: Maximum demand for each product in each period.
+min_sales: Minimum sales allowed for each product in each period.
+production_time: Time required on each workstation to produce one unit of each product.
+workstation_capacity: Capacity of each workstation for each period.
+profit: Net profit from one unit of each product.
+holding_cost: Cost to hold one unit of each product for one period.
+initial_inventory: Initial inventory for each product.
+back_orders_penalty: Penalty for not being able to satisfy the demand for one unit of each product.
+
+# Define indexes:
+i = an index of product, i = 1, . . . ,m, so m represents total number of products
+t = an index of period, t = 1, . . . , ¯t, so ¯t represents planning horizon
+
+# Define the parameters:
+max_demand[i][t] = maximum demand for product i in period t
+min_sales[i][t] = minimum sales allowed of product i in period t
+
+production_time[i][j] = time required on workstation j to produce one unit of product i
+workstation_capacity[j][t] = capacity of workstation j in period t in units consistent with those used to define production_time[i][j]
+I_minus[i][t] = represents the number of backorders carried from period t to t + 1
+I_plus[i][t] = represents the inventory of product i carried from period t to t + 1
+back_orders_pentaly[i] = penalty for not being able to satisfy the demand for one unit of product i
+
+r[i] = net profit from one unit of product i
+h[i] = cost to hold one unit of product i for one period t
+
+# Define the Decision Variables:
+X[i][t] = amount of product i produced in period t
+S[i][t] = amount of product i sold in period t
+I[i][t] = inventory of product i at end of period t (Ii0 is given as data)
+"""
+
+def supply_chain_optimization_new(m, n, bar_t, max_demand, min_sales, production_time, workstation_capacity, profit, holding_cost, initial_inventory, back_orders_pentaly):
+    # Create the problem
+    problem = pulp.LpProblem("New_Supply_Chain_Optimization", pulp.LpMaximize)
+
+    # Index ranges for products, workstations, and periods
+    products = range(m)
+    workstations = range(n)
+    periods = range(bar_t)
+
+    # Decision Variables
+    X = pulp.LpVariable.dicts("X", (products, periods), lowBound=0, cat='Continuous')
+    S = pulp.LpVariable.dicts("S", (products, periods), lowBound=0, cat='Continuous')
+    I_plus = pulp.LpVariable.dicts("I_plus", (products, periods), lowBound=0, cat='Continuous')
+    I_minus = pulp.LpVariable.dicts("I_minus", (products, periods), lowBound=0, cat='Continuous')
+
+    # Objective Function
+    profit_term = pulp.lpSum(profit[i] * S[i][t] for i in products for t in periods)
+    holding_cost_term = pulp.lpSum(holding_cost[i] * I_plus[i][t] for i in products for t in periods)
+    backorders_penalty_term = pulp.lpSum(back_orders_pentaly[i] * I_plus[i][t] for i in products for t in periods)
+    problem += profit_term - holding_cost_term - backorders_penalty_term
+
+    # Constraints
+    for i in products:
+        for t in periods:
+            problem += S[i][t] >= min_sales[i][t]  # Min demand constraint
+            problem += S[i][t] <= max_demand[i][t]       # Max demand constraint
+            problem += I_plus[i][t] - I_minus[i][t] == (I_plus[i][t-1] if t > 1 else initial_inventory[i]) + X[i][t] - S[i][t]  # Inventory balance
+            problem += X[i][t] >= 0                 # Non-negativity constraint for production
+            problem += S[i][t] >= 0                 # Non-negativity constraint for sales
+            problem += I_plus[i][t] >= 0            # Non-negativity constraint for positive inventory
+            problem += I_minus[i][t] >= 0           # Non-negativity constraint for negative inventory
+
+    for j in workstations:
+        for t in periods:
+            problem += pulp.lpSum(production_time[i][j] * X[i][t] for i in products) <= workstation_capacity[j][t]  # Capacity constraint
+
+    # Solve the problem
+    problem.solve()
+
+    # Output the results
+    for v in problem.variables():
+        print(f'{v.name} = {v.varValue}')
+
+    # Initialize lists to store usage values
+    workstation_usage = [[0] * time_horizon for _ in range(workstations_total)]
+
+    workstation_usage = [
+        [
+            (sum(production_time[i][j] * X[i][t].varValue for i in products) / workstation_capacity[j][t]) * 100
+            for t in periods
+        ]
+        for j in workstations
+    ]
+
+    return problem, workstation_usage

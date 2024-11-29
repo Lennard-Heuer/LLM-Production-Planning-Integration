@@ -1,0 +1,64 @@
+"""
+1. Model: Function to optimize aggregate production planning without workstations
+
+Parameters:
+time_horizon (int): Number of periods in the planning horizon.
+profit (list of float): Profit per unit for each product (list of size equal to the number of products).
+holding_costs (list of float): Holding costs per unit for each product (list of size equal to the number of products).
+max_demand (list of list of float): Maximum demand for each product in each period (2D list with dimensions [products x periods]).
+product_capacity  (list of list of float): Production capacity for each product in each period (2D list with dimensions [products x periods]).
+initial_inventory (list of float): Initial inventory for each product at the start of the first period (list of size equal to the number of products).
+products_total (int): Total number of products being considered in the model.
+
+Returns:
+dict: Optimal values of decision variables and total profit.
+"""
+from pulp import LpMaximize, LpProblem, LpVariable, lpSum
+
+def optimize_multi_product_production(time_horizon, profit, holding_costs, max_demand, product_capacity, initial_inventory, products_total):
+    # Create the problem
+    problem = LpProblem("Maximize_Profit_Multi_Product", LpMaximize)
+
+    # Index ranges for products and periods
+    products = range(products_total)
+    periods = range(time_horizon)
+
+    # Decision Variables
+    Amount_produced = [[LpVariable(f"Amount_produced_product_{i}_period_{t}", lowBound=0) for t in periods] for i in products]
+    Amount_sold = [[LpVariable(f"Amount_sold_product_{i}_period_{t}", lowBound=0) for t in periods] for i in products]
+    Inventory = [[LpVariable(f"Inventory_product_{i}_period_{t}", lowBound=0) for t in periods] for i in products]
+
+    # Objective Function
+    profit_term = lpSum(profit[i] * Amount_sold[i][t] for i in products for t in periods)
+    holding_cost_term = lpSum(holding_costs[i] * Inventory[i][t] for i in products for t in periods)
+    problem += profit_term - holding_cost_term
+
+    # Constraints
+    for i in products:
+        for t in periods:
+            # Demand constraint
+            problem += Amount_sold[i][t] <= max_demand[i][t], f"Demand_Constraint_Product_{i}_Period_{t}"
+            # Inventory balance constraint
+            if t == 0:
+                problem += Inventory[i][t] == initial_inventory[i] + Amount_produced[i][t] - Amount_sold[i][t], f"Inventory_Balance_Product_{i}_Period_{t}"
+            else:
+                problem += Inventory[i][t] == Inventory[i][t-1] + Amount_produced[i][t] - Amount_sold[i][t], f"Inventory_Balance_Product_{i}_Period_{t}"
+
+            # Product-specific capacity constraint
+            problem += Amount_produced[i][t] <= product_capacity[i][t], f"Capacity_Constraint_Product_{i}_Period_{t}"
+
+    # Solve the problem
+    problem.solve()
+
+    # Output the results
+    result = {}
+    for v in problem.variables():
+        result[v.name] = v.varValue
+        print(f'{v.name} = {v.varValue}')
+
+    # Extract total profit
+    total_profit = sum(profit[i] * result[f"Amount_sold_product_{i}_period_{t}"] for i in products for t in periods) - \
+                   sum(holding_costs[i] * result[f"Inventory_product_{i}_period_{t}"] for i in products for t in periods)
+    print(f"Total Profit: {total_profit}")
+
+    return result, total_profit
