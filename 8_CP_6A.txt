@@ -1,0 +1,121 @@
+"""
+6. Model: Function to optimize aggregate procution planning with multiple products - Overtime
+
+Parameters:
+
+products_total: Total number of products.
+workstations_total: Total number of workstations.
+time_horizon: Planning horizon (number of periods).
+max_demand: Maximum demand for each product in each period.
+min_sales: Minimum sales allowed for each product in each period.
+production_time: Time required on each workstation to produce one unit of each product.
+workstation_capacity: Capacity of each workstation for each period.
+profit: Net profit from one unit of each product.
+holding_cost: Cost to hold one unit of each product for one period.
+initial_inventory: Initial inventory for each product.
+backorders_penalty: Penalty for not being able to satisfy the demand for one unit of each product.
+overtime_cost: Cost of 1 hour of overtime at each workstation.
+
+
+# Define indexes:
+i = an index of product, i = 1, . . . ,m, so m represents total number of products
+t = an index of period, t = 1, . . . , ¯t, so ¯t represents planning horizon
+
+# Define the parameters:
+max_demand[i][t] = maximum demand for product i in period t
+min_sales[i][t] = minimum sales allowed of product i in period t
+
+production_time[i][j] = time required on workstation j to produce one unit of product i
+workstation_capacity[j][t] = capacity of workstation j in period t in units consistent with those used to define production_time[i][j]
+
+overtime_cost[j] = cost of 1 hour of overtime at workstation j ; a cost parameter
+overtime[j][t] = overtime taken at workstation j in period t
+
+profit[i] = net profit from one unit of product i
+holding_cost[i] = cost to hold one unit of product i for one period t
+
+# Define the Decision Variables:
+X[i][t] = amount of product i produced in period t
+S[i][t] = amount of product i sold in period t
+I[i][t] = inventory of product i at end of period t (Ii0 is given as data)
+"""
+
+from pulp import LpMaximize, LpProblem, LpVariable, lpSum
+
+def supply_chain_optimization_with_overtime(
+    products_total, workstations_total, time_horizon, max_demand, min_sales,
+    production_time, workstation_capacity, profit, holding_costs, backorders_penalty,
+    overtime_cost, initial_inventory
+):
+    # Create the problem
+    problem = LpProblem("Supply_Chain_Optimization_With_Overtime", LpMaximize)
+
+    # Index ranges for products, workstations, and periods
+    products = range(products_total)
+    workstations = range(workstations_total)
+    periods = range(time_horizon)
+
+    # Decision Variables
+    X = LpVariable.dicts("Produced", (products, periods), lowBound=0, cat="Continuous")  # Amount produced
+    S = LpVariable.dicts("Sold", (products, periods), lowBound=0, cat="Continuous")      # Amount sold
+    I_plus = LpVariable.dicts("Inventory", (products, periods), lowBound=0, cat="Continuous")  # Positive inventory
+    I_minus = LpVariable.dicts("Backorders", (products, periods), lowBound=0, cat="Continuous")  # Backorders
+    O = LpVariable.dicts("Overtime", (workstations, periods), lowBound=0, cat="Continuous")  # Overtime hours
+
+    # Objective Function
+    profit_term = lpSum(profit[i] * S[i][t] for i in products for t in periods)
+    holding_cost_term = lpSum(holding_costs[i] * I_plus[i][t] for i in products for t in periods)
+    penalty_cost_term = lpSum(backorders_penalty[i] * I_minus[i][t] for i in products for t in periods)
+    overtime_cost_term = lpSum(overtime_cost[j] * O[j][t] for j in workstations for t in periods)
+    problem += profit_term - holding_cost_term - penalty_cost_term - overtime_cost_term, "Maximize_Profit"
+
+    # Constraints
+    for i in products:
+        for t in periods:
+            # Sales constraints
+            problem += S[i][t] >= min_sales[i][t], f"Min_Sales_{i}_{t}"
+            problem += S[i][t] <= max_demand[i][t], f"Max_Demand_{i}_{t}"
+            
+            # Inventory balance constraints
+            problem += (
+                I_plus[i][t] - I_minus[i][t] ==
+                (I_plus[i][t-1] - I_minus[i][t-1] if t > 0 else initial_inventory[i]) + X[i][t] - S[i][t]
+            ), f"Inventory_Balance_{i}_{t}"
+
+    for j in workstations:
+        for t in periods:
+            # Workstation capacity constraints with overtime
+            problem += lpSum(
+                production_time[i][j] * X[i][t] for i in products
+            ) <= workstation_capacity[j][t] + O[j][t], f"Workstation_Capacity_With_Overtime_{j}_{t}"
+
+    # Non-negativity constraints for overtime
+    for j in workstations:
+        for t in periods:
+            problem += O[j][t] >= 0, f"Non_Negative_Overtime_{j}_{t}"
+
+    # Solve the problem
+    problem.solve()
+
+    # Extract results
+    Produced = [[X[i][t].varValue for t in periods] for i in products]
+    Sold = [[S[i][t].varValue for t in periods] for i in products]
+    Inventory = [[I_plus[i][t].varValue for t in periods] for i in products]
+    Backorders = [[I_minus[i][t].varValue for t in periods] for i in products]
+    Overtime = [[O[j][t].varValue for t in periods] for j in workstations]
+
+    # Calculate Workstation Utilization
+    workstation_usage = [
+        [
+            (sum(production_time[i][j] * (X[i][t].varValue or 0) for i in products) / (workstation_capacity[j][t] + (O[j][t].varValue or 0))) * 100
+            if (workstation_capacity[j][t] + (O[j][t].varValue or 0)) > 0 else 0
+            for t in periods
+        ]
+        for j in workstations
+    ]
+
+    # Print Results
+    print("Produced:", Produced)
+    print("Sold:", Sold)
+    print("Inventory:", Inventory)
+    print("Usage:", workstation_usage)
