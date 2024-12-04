@@ -1,0 +1,245 @@
+import os
+import re
+import csv
+import json
+from collections import deque
+from dataclasses import dataclass, field
+from typing import Any, List, Dict
+from math import ceil
+
+# Define the Part class
+@dataclass
+class Part:
+    id: str        # unique part identifier
+    oh: float      # on hand inventory
+    alloc: float   # allocated inventory
+    ss: float      # safety stock
+    lt: int        # lead time
+    ls: float      # lot size
+    scrap: float = None   # percentage of component/assembly expected to be scrapped
+    name: str = None     # descriptive part name
+    desc: str = None      # part description
+    sr: dict = field(default_factory=dict)         # scheduled receipts
+    bom: dict = field(default_factory=dict)        # bill of materials
+    mps: dict = field(default_factory=dict)        # master production schedule
+    mrp: dict = field(default_factory=dict)        # material requirements planning schedule
+    avail: dict = field(default_factory=dict)      # available inventory per time period
+    parents: List['Part'] = field(default_factory=list)    # parent components
+    rem_parents: int = 0   # remaining parents to be processed
+    queued: bool = False
+
+    def __post_init__(self):
+        """ Data cleaning when parts are initiated manually """
+        self.sr_clean_keys()
+        self.bom_clean_keys()
+        self.mps_clean_keys()
+
+    def sr_clean_keys(self):
+        self.sr = {int(k): float(v) for k, v in self.sr.items() if v}
+
+    def bom_clean_keys(self):
+        self.bom = {k: float(v) for k, v in self.bom.items() if v}
+
+    def mps_clean_keys(self):
+        self.mps = {int(k): float(v) for k, v in self.mps.items() if v}
+
+# Define the Solver class
+class Solver:
+    def __init__(self, allow_negative=False):
+        self.allow_negative = allow_negative   # if negative/past periods are considered valid
+        self.all_parts: Dict[str, Part] = {}           # Dict{Part.id: Part}
+        self.orphans: List[Part] = []             # Parts with no parents
+        self.min_period = 1           # Minimum time period
+        self.max_period = 1           # Maximum time period
+        self.current_level = deque()
+
+    def total_periods(self) -> int:
+        return self.max_period - self.min_period + 1
+
+    def negative_periods(self) -> bool:
+        return self.min_period <= 0   # a "0" period is considered negative
+
+    def orphan_check(self) -> None:
+        """ Identifies parts with no parents """
+        for part in self.all_parts.values():
+            part.queued = False
+            if part.rem_parents == 0:
+                self.orphans.append(part)
+                self.current_level.append(part)
+                part.queued = True
+
+    def process_part(self, part: Part) -> None:
+        for child_id in part.bom.keys():
+            child = self.all_parts[child_id]
+            child.rem_parents -= 1
+            if child.rem_parents == 0 and not child.queued:
+                self.current_level.append(child)
+                child.queued = True
+        available = 0
+        for period in range(self.min_period, self.max_period + 1):
+            if period == 1:
+                available += part.oh
+                available -= part.alloc
+            available += part.sr.get(period, 0.0)
+            needed_qt = part.mps.get(period, 0.0)
+            if needed_qt:
+                leftover = available - needed_qt
+                if leftover < part.ss:
+                    when_needed = period - part.lt
+                    if when_needed < self.min_period:
+                        self.min_period = when_needed
+                    if period > 0 or self.allow_negative:
+                        short = part.ss - leftover
+                        order = ceil(short / part.ls) * part.ls
+                        part.mrp[when_needed] = order
+                        available += order
+                        for child_id, amount in part.bom.items():
+                            child = self.all_parts[child_id]
+                            child.mps[when_needed] = amount * order + child.mps.get(when_needed, 0)
+                available -= needed_qt
+            part.avail[period] = available
+
+    def solve(self) -> tuple:
+        """ Processes all parts and calculates the MRP order release schedule and ATP schedule """
+        mrp = {}
+        now_available = {}
+        if not self.all_parts:
+            raise ValueError("There are no parts. Please import data.")
+        self.orphan_check()
+        if not self.orphans:
+            raise ValueError("There are no independent parent parts.")
+        while self.current_level:
+            current_part = self.current_level.popleft()
+            self.process_part(current_part)
+        for id, part in self.all_parts.items():
+            mrp[id] = mrp_to_list(part, self)
+            now_available[id] = avail_to_list(part, self)
+        return mrp, now_available
+
+# Helper functions
+def mrp_to_list(part: Part, solver: Solver) -> list:
+    mrp_lst = []
+    for period in range(solver.min_period, solver.max_period + 1):
+        qt = part.mrp.get(period, 0.0)
+        mrp_lst.append(qt)
+    return mrp_lst
+
+def avail_to_list(part: Part, solver: Solver) -> list:
+    avail_lst = []
+    for period in range(solver.min_period, solver.max_period + 1):
+        qt = part.avail.get(period, 0.0)
+        avail_lst.append(qt)
+    return avail_lst
+
+def parts_affected(part):
+    """ Recursive function for determining all parent components affected by the unavailability of a lower component """
+    affected = {}
+    for parent in part.parents:
+        affected.update(parts_affected(parent))
+    affected[part.id] = part
+    return affected
+
+# Example usage
+def main():
+    # Create a solver instance
+    solver = Solver()
+
+    # Define parts and their attributes
+    parts_data = {
+        'P1': {
+            'name': 'Product 1',
+            'desc': 'Finished product 1',
+            'oh': 10,
+            'alloc': 0,
+            'ss': 5,
+            'lt': 0,
+            'ls': 50,
+            'sr': {},
+            'mps': {1: 100, 2: 150, 3: 100}
+        },
+        'P2': {
+            'name': 'Product 2',
+            'desc': 'Finished product 2',
+            'oh': 20,
+            'alloc': 0,
+            'ss': 10,
+            'lt': 0,
+            'ls': 50,
+            'sr': {},
+            'mps': {1: 80, 2: 120, 3: 160}
+        },
+        'C1': {
+            'name': 'Component 1',
+            'desc': 'Component 1',
+            'oh': 50,
+            'alloc': 0,
+            'ss': 20,
+            'lt': 0,
+            'ls': 100,
+            'sr': {}
+        },
+        'C2': {
+            'name': 'Component 2',
+            'desc': 'Component 2',
+            'oh': 30,
+            'alloc': 0,
+            'ss': 15,
+            'lt': 0,
+            'ls': 100,
+            'sr': {}
+        }
+    }
+
+    # Initialize parts and add them to the solver
+    for part_id, data in parts_data.items():
+        part = Part(
+            id=part_id,
+            name=data['name'],
+            desc=data['desc'],
+            oh=data['oh'],
+            alloc=data['alloc'],
+            ss=data['ss'],
+            lt=data['lt'],
+            ls=data['ls'],
+            sr=data['sr'],
+            mps=data.get('mps', {})
+        )
+        solver.all_parts[part_id] = part
+
+    # Define the BOM as a list of tuples: (parent_id, child_id, quantity)
+    bom_data = [
+        ('P1', 'C1', 2),
+        ('P1', 'C2', 1),
+        ('P2', 'C1', 1),
+        ('P2', 'C2', 2),
+    ]
+
+    # Process the BOM data to build the parent-child relationships
+    for parent_id, child_id, quantity in bom_data:
+        parent = solver.all_parts[parent_id]
+        child = solver.all_parts[child_id]
+        parent.bom[child_id] = quantity
+        child.parents.append(parent)
+        child.rem_parents += 1
+
+    # Set min and max periods based on MPS
+    periods = set()
+    for part in solver.all_parts.values():
+        periods.update(part.mps.keys())
+    solver.min_period = min(periods) if periods else 1
+    solver.max_period = max(periods) if periods else 1
+
+    # Solve the MRP
+    mrp, now_available = solver.solve()
+
+    # Output the results
+    print("MRP Order Release Schedule:")
+    for part_id, releases in mrp.items():
+        print(f"{part_id}: {releases}")
+
+    print("\nAvailable to Promise (ATP) Inventory:")
+    for part_id, inventory in now_available.items():
+        print(f"{part_id}: {inventory}")
+
+if __name__ == "__main__":
+    main()
