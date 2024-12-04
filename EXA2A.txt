@@ -139,7 +139,8 @@ def parts_affected(part):
     affected[part.id] = part
     return affected
 
-# Example usage
+
+
 def main():
     # Create a solver instance
     solver = Solver()
@@ -232,14 +233,13 @@ def main():
     # Solve the MRP
     mrp, now_available = solver.solve()
 
-    # Output the results
-    print("MRP Order Release Schedule:")
-    for part_id, releases in mrp.items():
-        print(f"{part_id}: {releases}")
+    # Create the output dictionaries
+    mrp_output = {part_id: releases for part_id, releases in mrp.items()}
+    atp_output = {part_id: inventory for part_id, inventory in now_available.items()}
 
-    print("\nAvailable to Promise (ATP) Inventory:")
-    for part_id, inventory in now_available.items():
-        print(f"{part_id}: {inventory}")
+    # Print the outputs in a fetchable format
+    print("MRP Order Release Schedule:", mrp_output)
+    print("Available to Promise (ATP) Inventory:", atp_output)
 
 if __name__ == "__main__":
     main()
