@@ -78,6 +78,8 @@ def supply_chain_optimization_with_backorders(
                 (I_plus[i][t-1] - I_minus[i][t-1] if t > 0 else initial_inventory[i]) + X[i][t] - S[i][t]
             ), f"Inventory_Balance_{i}_{t}"
 
+        problem += I_minus[i][time_horizon - 1] == 0, f"Final_Backorder_Zero_Product_{i}"
+
     for j in workstations:
         for t in periods:
             # Workstation capacity constraints
