@@ -15,7 +15,7 @@ class Part:
     alloc: float   # allocated inventory
     ss: float      # safety stock
     lt: int        # lead time
-    ls: float      # lot size
+    ls: float      # min. lot size
     scrap: float = None   # percentage of component/assembly expected to be scrapped
     name: str = None     # descriptive part name
     desc: str = None      # part description
