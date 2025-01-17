@@ -1,0 +1,257 @@
+!pip install pulp
+
+import pulp
+
+# --------------------
+# 1. Define sets
+# --------------------
+T = [1, 2, 3]          # Example time periods
+K = ['projA', 'projB'] # Example innovative projects
+I_set = [1, 2]         # Example for n=2 "demand scenarios" or adjustments
+
+# --------------------
+# 2. Define parameters
+# --------------------
+# (In a real model, read these from data files, etc.)
+
+# Economic parameters
+pr      = {1: 50, 2: 52, 3: 55}    # Selling price per unit in each period
+cP      = 20                       # Production cost per unit
+cSU     = 25                       # Subcontracting cost per unit
+cI      = 3                        # Inventory holding cost per unit per period
+cSO     = 10                       # Stockout penalty cost per unit
+cU      = 100                      # Some cost associated with using option U_t (binary)
+c_i     = {1: 5, 2: 8}            # Cost or penalty associated with each demand scenario i
+ckIN    = {'projA': 1000, 'projB': 2000}  # Implementation cost for each project
+
+# Environmental parameters
+gP_tilde   = 2   # GHG per produced unit
+gI_tilde   = 0.5 # GHG per unit in inventory
+gSU_tilde  = 3   # GHG per subcontracted unit
+eP_tilde   = 4   # Electricity per produced unit
+eI_tilde   = 1   # Electricity per unit in inventory
+eSU_tilde  = 5   # Electricity per subcontracted unit
+
+# For each project k, how much it reduces GHG/electricity
+# e.g. if project k is implemented, we reduce GHG of production or inventory by g^P_k, g^I_k, etc.
+gP_k = {'projA': 0.3, 'projB': 0.8}
+gI_k = {'projA': 0.1, 'projB': 0.2}
+eP_k = {'projA': 0.5, 'projB': 1.0}
+eI_k = {'projA': 0.2, 'projB': 0.3}
+
+# We also need big-M for linearizing
+M_big = 1e6
+
+# Demand data
+# Suppose base demand = d[t]; it can be adjusted upward by (d^+_{it} * rho_i).
+d_base = {1: 100, 2: 120, 3: 140}        # Base demand in each period
+d_plus = {(1,1): 0.2,  (1,2): 0.3,       # d^+_{1,1}, d^+_{1,2}
+          (2,1): 0.25, (2,2): 0.05,
+          (3,1): 0.1,  (3,2): 0.2}       # etc.
+
+alpha = 0.95  # Cycle service level (stock-outs cannot exceed (1 - alpha)*D[t])
+
+# Normalization coefficients in environmental & social objectives
+coef1_env = 1.0
+coef2_env = 1.0
+coef4_soc = 1.0   # We'll only keep stock-outs as a "social" piece, purely for example
+
+# Initial inventory
+I0 = 10
+
+# A large enough capacity or "switch" for production (if you want a capacity limit via U_t)
+BigM_prod = 200
+
+# --------------------
+# 3. Create the model
+# --------------------
+model = pulp.LpProblem("SAP", pulp.LpMinimize)  
+# We'll build a single-objective problem but store each sub-objective to combine them.
+
+# --------------------
+# 4. Define variables
+# --------------------
+# Nonnegative continuous variables
+P  = pulp.LpVariable.dicts("Prod", T, lowBound=0, cat=pulp.LpContinuous)   # Production
+SU = pulp.LpVariable.dicts("Subc", T, lowBound=0, cat=pulp.LpContinuous)   # Subcontract
+I  = pulp.LpVariable.dicts("Inv",  T, lowBound=0, cat=pulp.LpContinuous)   # Inventory
+S  = pulp.LpVariable.dicts("Sales",T, lowBound=0, cat=pulp.LpContinuous)   # Sales
+SO = pulp.LpVariable.dicts("StockOut", T, lowBound=0, cat=pulp.LpContinuous)  # Stock-outs
+D  = pulp.LpVariable.dicts("Demand",   T, lowBound=0, cat=pulp.LpContinuous)  # Realized demand
+
+# Binary variables
+U   = pulp.LpVariable.dicts("UseOption", T, cat=pulp.LpBinary)  # E.g. to "turn on" production
+Y   = pulp.LpVariable.dicts("ProjImpl",  K, cat=pulp.LpBinary)  # Whether to implement project k
+rho = pulp.LpVariable.dicts("rho", I_set, lowBound=0, upBound=1, cat=pulp.LpContinuous)  
+
+# For each project k, linearized "decrease" in GHG and electricity usage
+GI = pulp.LpVariable.dicts("GI_dec", K, lowBound=0, cat=pulp.LpContinuous)
+GP = pulp.LpVariable.dicts("GP_dec", K, lowBound=0, cat=pulp.LpContinuous)
+EI = pulp.LpVariable.dicts("EI_dec", K, lowBound=0, cat=pulp.LpContinuous)
+EP = pulp.LpVariable.dicts("EP_dec", K, lowBound=0, cat=pulp.LpContinuous)
+
+# --------------------
+# 5. Define constraints
+# --------------------
+
+#
+# 5a. Inventory balance: I_t = I_(t-1) + P_t + SU_t - S_t
+#
+T_list = sorted(T)  # just in case
+for idx, t in enumerate(T_list):
+    if idx == 0:
+        # For the first period, we often say I[t] = I0 + P[t] + SU[t] - S[t]
+        model += I[t] == I0 + P[t] + SU[t] - S[t], f"InvBalance_{t}"
+    else:
+        t_prev = T_list[idx - 1]
+        model += I[t] == I[t_prev] + P[t] + SU[t] - S[t], f"InvBalance_{t}"
+
+#
+# 5b. Stockout + Sales = Demand
+#
+for t in T_list:
+    model += S[t] + SO[t] == D[t], f"Sales_StockOut_{t}"
+
+#
+# 5c. Demand definition: D[t] = d_base[t] * (1 + sum_i d_plus[t,i]*rho[i])
+#
+for t in T_list:
+    model += D[t] == d_base[t] * (1 + pulp.lpSum(d_plus[(t,i)] * rho[i] for i in I_set)), f"DemandDef_{t}"
+
+#
+# 5d. Service-level constraint: SO[t] <= (1 - alpha)*D[t]
+#
+for t in T_list:
+    model += SO[t] <= (1 - alpha) * D[t], f"StockOutLimit_{t}"
+
+#
+# 5e. Sum of rho_i <= 1
+#
+model += pulp.lpSum(rho[i] for i in I_set) <= 1, "RhoSumConstraint"
+
+#
+# 5f. Capacity constraint (optional example): P[t] <= BigM_prod * U[t]
+#
+for t in T_list:
+    model += P[t] <= BigM_prod * U[t], f"CapConstraint_{t}"
+
+#
+# 5g. Linearization constraints for GI[k], GP[k], EI[k], EP[k]
+#     Example: GI[k] = Y[k] * ( gI_k * sum_t I[t] ).
+#     We use big-M to keep them linear:  GI[k] <= M*Y[k], etc.
+#
+for k in K:
+    # Summations
+    totalInv = pulp.lpSum(I[t] for t in T_list)
+    totalProd= pulp.lpSum(P[t] for t in T_list)
+
+    # GI[k]
+    model += GI[k] <= M_big * Y[k],                                f"GI1_{k}"
+    model += GI[k] <= gI_k[k] * totalInv,                          f"GI2_{k}"
+    model += GI[k] >= gI_k[k] * totalInv - M_big * (1 - Y[k]),     f"GI3_{k}"
+
+    # GP[k]
+    model += GP[k] <= M_big * Y[k],                                f"GP1_{k}"
+    model += GP[k] <= gP_k[k] * totalProd,                         f"GP2_{k}"
+    model += GP[k] >= gP_k[k] * totalProd - M_big * (1 - Y[k]),    f"GP3_{k}"
+
+    # EI[k]
+    model += EI[k] <= M_big * Y[k],                                f"EI1_{k}"
+    model += EI[k] <= eI_k[k] * totalInv,                          f"EI2_{k}"
+    model += EI[k] >= eI_k[k] * totalInv - M_big * (1 - Y[k]),     f"EI3_{k}"
+
+    # EP[k]
+    model += EP[k] <= M_big * Y[k],                                f"EP1_{k}"
+    model += EP[k] <= eP_k[k] * totalProd,                         f"EP2_{k}"
+    model += EP[k] >= eP_k[k] * totalProd - M_big * (1 - Y[k]),    f"EP3_{k}"
+
+# --------------------
+# 6. Define objectives
+# --------------------
+
+# 6a. Economic objective: 
+#     z_eco = sum_t( pr[t]*S[t] ) 
+#              - sum_t( cP*P[t] + cSU*SU[t] + cI*I[t] + cSO*SO[t] + cU*U[t] )
+#              - sum_i( c_i * rho[i] )
+#              - sum_k( ckIN[k] * Y[k] )
+z_eco = (
+    pulp.lpSum(pr[t] * S[t] for t in T_list)
+    - pulp.lpSum(cP   * P[t] for t in T_list)
+    - pulp.lpSum(cSU  * SU[t] for t in T_list)
+    - pulp.lpSum(cI   * I[t] for t in T_list)
+    - pulp.lpSum(cSO  * SO[t] for t in T_list)
+    - pulp.lpSum(cU   * U[t]  for t in T_list)
+    - pulp.lpSum(c_i[i] * rho[i] for i in I_set)
+    - pulp.lpSum(ckIN[k] * Y[k]  for k in K)
+)
+
+# 6b. Environmental objective:
+#     z_env = coef1_env * [ ( gI_tilde * sum_t I[t] - sum_k GI[k] )
+#                         + ( gSU_tilde * sum_t SU[t] )
+#                         + ( gP_tilde  * sum_t P[t] - sum_k GP[k] ) ]
+#           + coef2_env * [ ( eI_tilde * sum_t I[t] - sum_k EI[k] )
+#                         + ( eSU_tilde* sum_t SU[t] )
+#                         + ( eP_tilde * sum_t P[t] - sum_k EP[k] ) ]
+z_env = (
+    coef1_env * (
+       gI_tilde * pulp.lpSum(I[t] for t in T_list)
+       - pulp.lpSum(GI[k] for k in K)
+       + gSU_tilde * pulp.lpSum(SU[t] for t in T_list)
+       + gP_tilde  * pulp.lpSum(P[t]  for t in T_list)
+       - pulp.lpSum(GP[k] for k in K)
+    )
+    + coef2_env * (
+       eI_tilde * pulp.lpSum(I[t] for t in T_list)
+       - pulp.lpSum(EI[k] for k in K)
+       + eSU_tilde* pulp.lpSum(SU[t] for t in T_list)
+       + eP_tilde * pulp.lpSum(P[t]  for t in T_list)
+       - pulp.lpSum(EP[k] for k in K)
+    )
+)
+
+# 6c. Social objective (simplified version just penalizing stock-outs):
+#     z_soc = coef4_soc * sum_t( SO[t] )
+z_soc = coef4_soc * pulp.lpSum(SO[t] for t in T_list)
+
+#
+# Combine all three into a single (weighted) objective for demonstration
+# (You can tweak weights as you see fit or solve them separately.)
+#
+w_eco = 1.0
+w_env = 1.0
+w_soc = 1.0
+
+# Because z_eco is typically "maximize" and the other two are "minimize,"
+# a straightforward approach is to negate z_eco in a single "minimize" sense:
+obj_combined = -w_eco * z_eco + w_env * z_env + w_soc * z_soc
+
+# Set the model’s objective (in pulp everything is either LpMinimize or LpMaximize)
+model.setObjective(obj_combined)
+
+# --------------------
+# 7. Solve
+# --------------------
+model.solve(pulp.PULP_CBC_CMD(msg=True))
+
+# --------------------
+# 8. Output results
+# --------------------
+print(f"Status: {pulp.LpStatus[model.status]}")
+print(f"Objective (combined) = {pulp.value(model.objective):.2f}")
+
+print("\nDecision variables:")
+for v in model.variables():
+    if pulp.value(v) is not None and pulp.value(v) != 0.0:
+        print(f"  {v.name} = {pulp.value(v):.2f}")
+
+#
+# If you want to inspect sub-objectives:
+#
+opt_z_eco = pulp.value(z_eco)  # would be the "max" side
+opt_z_env = pulp.value(z_env)
+opt_z_soc = pulp.value(z_soc)
+
+print(f"\nSub-objective values:")
+print(f"  z_eco = {opt_z_eco:.2f}  (recall we used -z_eco in the final objective)")
+print(f"  z_env = {opt_z_env:.2f}")
+print(f"  z_soc = {opt_z_soc:.2f}")
