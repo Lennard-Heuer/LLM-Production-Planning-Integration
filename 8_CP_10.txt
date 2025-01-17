@@ -1,0 +1,215 @@
+from pulp import LpMaximize, LpProblem, LpVariable, lpSum, LpContinuous, LpBinary
+
+def optimize_production_plan_no_backorders_no_setup(
+    time_horizon,              # Number of periods
+    products_total,            # Number of products
+    workstations_total,        # Number of workstations
+
+    profit,                    # profit[i]
+    holding_costs,             # holding_costs[i]
+
+    promotion_cost,            # promotion_cost[r]
+    demand_increase_rate,      # demand_increase_rate[r][i][t]
+
+    max_demand,                # max_demand[i][t]
+    min_sales,                 # min_sales[i][t]
+    initial_inventory,         # initial_inventory[i]
+    production_time,           # production_time[i][j]
+    workstation_capacity       # workstation_capacity[j][t]
+):
+    """
+    This model has:
+      - No backorders (inventory I[i][t] >= 0)
+      - No setup cost, no setup binary variable
+      - Promotion programs (choose at most one)
+
+    Decision Variables:
+      X[i][t] : Production quantity of product i in period t
+      S[i][t] : Sales of product i in period t
+      I[i][t] : Inventory of product i at the end of period t (>= 0)
+      R[r]    : Binary, select promotion program r (at most one)
+      D[i][t] : Actual (adjusted) demand for product i in period t
+    """
+
+    # Create the problem
+    problem = LpProblem("AggPlan_NoBackorders_NoSetup", LpMaximize)
+
+    # Sets
+    products = range(products_total)
+    workstations = range(workstations_total)
+    periods = range(time_horizon)
+    promotions = range(len(promotion_cost))  # r in {0, 1, ..., n-1}
+
+    # -------------------------------------------------------------------------
+    # Decision Variables
+    # -------------------------------------------------------------------------
+    X = LpVariable.dicts("Produced", (products, periods), lowBound=0, cat=LpContinuous)
+    S = LpVariable.dicts("Sold", (products, periods), lowBound=0, cat=LpContinuous)
+    I = LpVariable.dicts("Inventory", (products, periods), lowBound=0, cat=LpContinuous)
+
+    # Promotion selection
+    R = LpVariable.dicts("PromotionUsed", promotions, cat=LpBinary)
+
+    # Actual demand after promotion
+    D = LpVariable.dicts("DemandAfterPromotion", (products, periods), lowBound=0, cat=LpContinuous)
+
+    # -------------------------------------------------------------------------
+    # Objective Function
+    # -------------------------------------------------------------------------
+    # Profit from sales - holding costs - promotion cost
+    revenue = lpSum(profit[i] * S[i][t] for i in products for t in periods)
+    holding_cost_term = lpSum(holding_costs[i] * I[i][t] for i in products for t in periods)
+    promotion_cost_term = lpSum(promotion_cost[r] * R[r] for r in promotions)
+
+    problem += revenue - holding_cost_term - promotion_cost_term, "Total_Profit"
+
+    # -------------------------------------------------------------------------
+    # Constraints
+    # -------------------------------------------------------------------------
+    # (1) Promotion demand adjustment
+    for i in products:
+        for t in periods:
+            # Adjusted demand: max_demand + demand increase from promotions
+            problem += D[i][t] == max_demand[i][t] * (
+                1 + lpSum(demand_increase_rate[r][i][t] * R[r] for r in promotions)
+            ), f"Adjusted_Demand_{i}_{t}"
+
+    # (2) At most one promotion
+    problem += lpSum(R[r] for r in promotions) <= 1, "At_Most_One_Promotion"
+
+    # (3) Sales constraints: min_sales <= S[i][t] <= D[i][t]
+    for i in products:
+        for t in periods:
+            problem += S[i][t] >= min_sales[i][t],    f"MinSales_{i}_{t}"
+            problem += S[i][t] <= D[i][t],            f"MaxDemand_{i}_{t}"
+
+    # (4) Inventory balance
+    for i in products:
+        for t in periods:
+            if t == 0:
+                # I[i][0] = initial_inventory[i] + X[i][0] - S[i][0]
+                problem += I[i][t] == initial_inventory[i] + X[i][t] - S[i][t], f"InvBalance_{i}_0"
+            else:
+                # I[i][t] = I[i][t-1] + X[i][t] - S[i][t]
+                problem += I[i][t] == I[i][t-1] + X[i][t] - S[i][t], f"InvBalance_{i}_{t}"
+
+    # (5) Workstation capacity
+    for j in workstations:
+        for t in periods:
+            problem += lpSum(production_time[i][j] * X[i][t] for i in products) \
+                       <= workstation_capacity[j][t], f"Capacity_{j}_{t}"
+
+    # -------------------------------------------------------------------------
+    # Solve
+    # -------------------------------------------------------------------------
+    problem.solve()
+
+    # -------------------------------------------------------------------------
+    # Extract Results
+    # -------------------------------------------------------------------------
+    Produced = [[X[i][t].varValue for t in periods] for i in products]
+    Sold = [[S[i][t].varValue for t in periods] for i in products]
+    InventoryVal = [[I[i][t].varValue for t in periods] for i in products]
+    PromotionUsed = [R[r].varValue for r in promotions]
+    DemandActual = [[D[i][t].varValue for t in periods] for i in products]
+
+    # Calculate workstation utilization (optional)
+    workstation_usage = [
+        [
+            100 * sum(production_time[i][j] * (X[i][t].varValue or 0) for i in products)
+            / workstation_capacity[j][t] if workstation_capacity[j][t] != 0 else 0
+            for t in periods
+        ]
+        for j in workstations
+    ]
+
+    # Print results
+    print("Produced:", Produced)
+    print("Sold:", Sold)
+    print("Inventory:", InventoryVal)
+    print("Demand After Promotion (D):", DemandActual)
+    print("Promotion Used (R[r]):", PromotionUsed)
+    print("Workstation Utilization (%):", workstation_usage)
+
+    return {
+        "Produced": Produced,
+        "Sold": Sold,
+        "Inventory": InventoryVal,
+        "DemandActual": DemandActual,
+        "PromotionUsed": PromotionUsed,
+        "WorkstationUsage": workstation_usage,
+        "ObjectiveValue": problem.objective.value()
+    }
+
+
+# -------------------------------------------------------------------------
+# Example Data
+# -------------------------------------------------------------------------
+
+time_horizon = 4
+products_total = 3
+workstations_total = 2
+
+profit = [10, 8, 12]
+holding_costs = [1, 1.5, 2]
+promotion_cost = [500, 700]
+
+# Base demand (max_demand)
+max_demand = [
+    [100, 120, 110, 130],  # Product 1
+    [150, 180, 160, 190],  # Product 2
+    [200, 220, 210, 230],  # Product 3
+]
+
+# Demand increase rate
+demand_increase_rate = [
+    [  # Promotion 1
+        [0.2, 0.25, 0.2, 0.3],  # Product 1
+        [0.3, 0.35, 0.25, 0.4],  # Product 2
+        [0.4, 0.45, 0.35, 0.5],  # Product 3
+    ],
+    [  # Promotion 2
+        [0.3, 0.4, 0.3, 0.5],   # Product 1
+        [0.4, 0.5, 0.35, 0.55], # Product 2
+        [0.5, 0.6, 0.45, 0.65], # Product 3
+    ],
+]
+
+# Minimum sales
+min_sales = [
+    [10, 12, 11, 13],  # Product 1
+    [15, 18, 16, 19],  # Product 2
+    [20, 22, 21, 23],  # Product 3
+]
+
+# Initial inventory
+initial_inventory = [50, 40, 60]
+
+# Production time
+production_time = [
+    [2, 3],      # Product 1
+    [1.5, 2],    # Product 2
+    [2.5, 1],    # Product 3
+]
+
+# Workstation capacity
+workstation_capacity = [
+    [500, 550, 600, 650],  # Workstation 1
+    [600, 650, 700, 750],  # Workstation 2
+]
+
+# Run the model
+results = optimize_production_plan_no_backorders_no_setup(
+    time_horizon,
+    products_total,
+    workstations_total,
+    profit,
+    holding_costs,
+    promotion_cost,
+    demand_increase_rate,
+    max_demand,
+    min_sales,
+    initial_inventory,
+    production_time,
+    workstation_capacity,
+)
