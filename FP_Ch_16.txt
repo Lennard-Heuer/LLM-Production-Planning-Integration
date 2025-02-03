@@ -1,0 +1,6387 @@
+C
+
+H
+
+16
+
+A
+
+P
+
+T
+
+E
+
+R
+
+Aggregate and
+Workforce Planning
+
+And I remember misinformation followed us like a plague,
+Nobody knew from time to time if the plans were changed.
+Paul Simon
+
+16.1
+
+Introduction
+A variety of manufacturing management decisions require information about what a
+plant will produce over the next year or beyond. Examples include the following:
+1. Stafﬁng. Recruiting and training new workers is a time-consuming process.
+Management needs a long-term production plan to decide how many and what
+type of workers to add and when to bring them online in order to meet
+production needs. Conversely, eliminating workers is costly and painful, but
+sometimes necessary. Anticipating reductions via a long-term plan makes it
+possible to use natural attrition, or other gentler methods, in place of layoffs to
+achieve at least part of the reductions.
+2. Procurement. Contracts with suppliers are frequently set up well in advance of
+placing actual orders. For example, a ﬁrm might need an opportunity to
+“certify” the subcontractor for quality and other performance measures.
+Additionally, some procurement lead times are long (e.g., for high-technology
+components they may be 6 months or more). Therefore, decisions regarding
+contracts and long-lead-time orders must be made on the basis of a long-term
+production plan.
+3. Subcontracting. Management must arrange contracts with subcontractors to
+manufacture entire components or to perform speciﬁc operations well in
+advance of actually sending out orders. Determining what types of
+subcontracting to use requires long-term projections of production
+requirements and a plan for in-house capacity modiﬁcations.
+4. Marketing. Marketing personnel should make decisions on which products to
+promote on the basis of both a demand forecast and knowledge of which
+products have tight capacity and which do not. A long-term production plan
+incorporating planned capacity changes is needed for this.
+553
+
+554
+
+Part III
+
+Principles in Practice
+
+The module in which we address the important question of what will be produced
+and when it will be produced over the long range is the aggregate planning (AP) module.
+As Figure 13.9 illustrated, the AP module occupies a central position in the production
+planning and control (PPC) hierarchy. The reason, or course, is that so many important
+decisions, such as those listed, depend on a long-term production plan.
+Precisely because so many different decisions hinge on the long-range production
+plan, many different formulations of the AP module are possible. Which formulation
+is appropriate depends on what decision is being addressed. A model for determining
+the time of stafﬁng additions may be very different from a model for deciding which
+products should be manufactured by outside subcontractors. Yet a different model might
+make sense if we want to address both issues simultaneously.
+The stafﬁng problem is of sufﬁcient importance to warrant its own module in the
+hierarchy of Figure 13.9, the workforce planning (WP) module. Although high-level
+workforce planning (projections of total stafﬁng increases or decreases, institution of
+training policies) can be done using only a rough estimate of future production based on
+the demand forecast, low-level stafﬁng decisions (timing of hires or layoffs, scheduling
+usage of temporary hires, scheduling training) are often based on the more detailed production information contained in the aggregate plan. In the context of the PPC hierarchy
+in Figure 13.9, we can think of the AP module as either reﬁning the output of the WP
+module or working in concert with the WP module. In any case, they are closely related.
+We highlight this relationship by treating aggregate planning and workforce planning
+together in this chapter.
+As we mentioned in Chapter 13, linear programming is a particularly useful tool
+for formulating and solving many of the problems commonly faced in the aggregate
+planning and workforce planning modules. In this chapter, we will formulate several
+typical AP/WP problems as linear programs (LPs). We will also demonstrate the use
+of linear programming (LP) as a solution tool in various examples. Our goal is not so
+much to provide speciﬁc solutions to particular AP programs, but rather to illustrate
+general problem-solving approaches. The reader should be able to combine and extend
+our solutions to cover situations not directly addressed here.
+Finally, while this chapter will not make an LP expert out of readers, we do hope
+that they will become aware of how and where LP can be used in solving AP problems.
+If managers can recognize that particular problems are well suited to LP, they can easily
+obtain the technical support (consultants, internal experts) for carrying out the analysis
+and implementation. Unfortunately, far too few practicing managers make this connection; as a result, many are hammering away at problems that are well suited to linear
+programming with manual spreadsheets and other ad hoc approaches.
+
+16.2
+
+Basic Aggregate Planning
+We start with a discussion of simple aggregate planning situations and work our way up to
+more complex cases. Throughout the chapter, we assume that we have a demand forecast
+available to us. This forecast is generated by the forecasting module and gives estimates
+of periodic demand over the planning horizon. Typically, periods are given in months,
+although further into the future they can represent longer intervals. For instance, periods
+1 to 12 might represent the next 12 months, while periods 13 to 16 might represent the
+four quarters following these 12 months. A typical planning horizon for an AP module
+is 1 to 3 years.
+
+Chapter 16
+
+16.2.1
+
+555
+
+Aggregate and Workforce Planning
+
+A Simple Model
+Our ﬁrst scenario represents the simplest possible AP module. We consider this case not
+because it leads to a practical model, but because it illustrates the basic issues, provides a
+basis for considering more realistic situations, and showcases how linear programming
+can support the aggregate planning process. Although our discussion does not presume
+any background in linear programming, the reader interested in how and why LP works
+is advised to consult Appendix 16A, which provides an elementary overview of this
+important technique.
+For modeling purposes, we consider the situation where there is only a single product, and the entire plant can be treated as a single resource. In every period, we have a
+demand forecast and a capacity constraint. For simplicity, we assume that demands represent customer orders that are due at the end of the period, and we neglect randomness
+and yield loss.
+It is obvious under these simplifying assumptions that if demand is less than capacity
+in every period, the optimal solution is to simply produce amounts equal to demand in
+every period. This solution will meet all demand just-in-time and therefore will not build
+up any inventory between periods. However, if demand exceeds capacity in some periods,
+then we must work ahead (i.e., produce more than we need in some previous period).
+If demand cannot be met even by working ahead, we want our model to tell us this. To
+model this situation in the form of a linear program, we introduce the following notation:
+t = an index of time periods, where t = 1, . . . , t¯, so t¯ is planning horizon for
+problem
+dt = demand in period t, in physical units, standard containers, or some other
+appropriate quantity (assumed due at end of period)
+ct = capacity in period t, in same units used for dt
+r = proﬁt per unit of product sold (not including inventory carrying cost)
+h = cost to hold one unit of inventory for one period
+X t = quantity produced during period t (assumed available to satisfy demand at
+end of period t)
+St = quantity sold during period t (we assume that units produced in t are
+available for sale in t and thereafter)
+It = inventory at end of period t (after demand has been met); we assume I0 is
+given as data
+In this notation, X t , St , and It are decision variables. That is, the computer program
+solving the LP is free to choose their values so as to minimize the objective, provided the
+constraints are satisﬁed. The other variables—dt , ct , r , h—are constants, which must
+be estimated for the actual system and supplied as data. Throughout this chapter, we use
+the convention of representing variables with capital letters and constants with lowercase
+letters.
+We can represent the problem of maximizing net proﬁt minus inventory carrying
+cost subject to capacity and demand constraints as
+Maximize
+
+t¯
+
+
+r St − h It
+
+(16.1)
+
+t=1
+
+Subject to:
+St ≤ dt
+
+t = 1, . . . , t¯
+
+(16.2)
+
+556
+
+Part III
+
+Principles in Practice
+
+X t ≤ ct
+
+t = 1, . . . , t¯
+
+(16.3)
+
+It = It−1 + X t − St
+
+t = 1, . . . , t¯
+
+(16.4)
+
+X t , St , It ≥ 0
+
+t = 1, . . . , t¯
+
+(16.5)
+
+The objective function computes net proﬁt by multiplying unit proﬁt r by sales St in
+each period t, and subtracting the inventory carrying cost h times remaining inventory It
+at the end of period t, and summing over all periods in the planning horizon. Constraints
+(16.2) limit sales to demand. If possible, the computer will make all these constraints
+tight, since increasing the St values increases the objective function. The only reason
+that these constraints will not be tight in the optimal solution is that capacity constraints
+(16.3) will not permit it.1 Constraints (16.4), which are of a form common to almost all
+multiperiod aggregate planning models, are known as balance constraints. Physically,
+all they represent is conservation of material; the inventory at the end of period t(It ) is
+equal to the inventory at the end of period t − 1(It−1 ) plus what was produced during
+period t(X t ) minus the amount sold in period t (St ). These constraints are what force the
+computer to choose values for X t , St , and It that are consistent with our verbal deﬁnitions
+of them. Constraints (16.5) are simple non-negativity constraints, which rule out negative
+production or inventory levels. Many, but not all (e.g., not Solver in Excel), computer
+packages for solving LPs automatically force decision variables to be non-negative unless
+the user speciﬁes otherwise.
+
+16.2.2
+
+An LP Example
+To make the above formulation concrete and to illustrate the mechanics of solving it via
+linear programming, we now consider a simple example. The Excel spreadsheet shown
+in Figure 16.1 contains the unit proﬁt r of $10, the one-period unit holding cost h of
+$1, the initial inventory I0 of 0, and capacity and demand data ct and dt for the next
+6 months. We will make use of the rest of the spreadsheet in Figure 16.1 momentarily.
+For now, we can express LP (16.1)–(16.5) for this speciﬁc case as
+Maximize
+
+10(S1 + S2 + S3 + S4 + S5 + S6 ) − 1(I1 + I2 + I3 + I4 + I5 + I6 )
+
+(16.6)
+
+Subject to:
+Demand constraints
+S1 ≤ 80
+
+(16.7)
+
+S2 ≤ 100
+
+(16.8)
+
+S3 ≤ 120
+
+(16.9)
+
+S4 ≤ 140
+
+(16.10)
+
+S5 ≤ 90
+
+(16.11)
+
+S6 ≤ 140
+
+(16.12)
+
+1 If we want to consider demand as inviolable, we could remove constraints (16.2) and replace S with d
+t
+t
+in the objective and constraints (16.4). The problem with this, however, is that if demand is capacityinfeasible, the computer will just come back with a message saying “infeasible,” which doesn’t tell us why.
+The formulation here will be feasible regardless of demand; it simply won’t make sales equal to demand if
+there is not enough capacity, and thus we will know what demand we are incapable of meeting from the
+solution.
+
+Chapter 16
+
+Figure 16.1
+Input spreadsheet for
+linear programming
+example.
+
+A
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+
+557
+
+Aggregate and Workforce Planning
+B
+
+C
+
+D
+
+E
+
+F
+
+G
+
+H
+
+Constants:
+r
+h
+I_O
+t
+c_t
+d_t
+
+10
+1
+0
+1
+100
+80
+
+2
+100
+100
+
+3
+100
+120
+
+4
+120
+140
+
+5
+120
+90
+
+6
+120
+140
+
+Total
+660
+670
+
+Variables:
+t
+X_t
+S_t
+I_t
+
+1
+0
+0
+0
+
+2
+0
+0
+0
+
+3
+0
+0
+0
+
+4
+0
+0
+0
+
+5
+0
+0
+0
+
+6
+0
+0
+0
+
+Total
+0
+0
+0
+
+Objective:
+Net Profit:
+
+$0
+
+Constraints:
+S_1
+S_2
+S_3
+S_4
+S_5
+S_6
+X_1
+X_2
+X_3
+X_4
+X_5
+X_6
+I_1-I_0-X_1+S_1
+I_2-I_1-X_2+S_2
+I_3-I_2-X_3+S_3
+I_4-I_3-X_4+S_4
+I_5-I_4-X_5+S_5
+I_6-I_5-X_6+S_6
+
+0
+0
+0
+0
+0
+0
+0
+0
+0
+0
+0
+0
+0
+0
+0
+0
+0
+0
+
+r*(S_1+S_2+S_3+S_4+S_5+S_6) - h*(I_1+I_2+I_3+I_4+I_5+I_6)
+
+<=
+<=
+<=
+<=
+<=
+<=
+<=
+<=
+<=
+<=
+<=
+<=
+=
+=
+=
+=
+=
+=
+
+d_1
+d_2
+d_3
+d_4
+d_5
+d_6
+c_1
+c_2
+c_3
+c_4
+c_5
+c_6
+
+80
+100
+120
+140
+90
+140
+100
+100
+100
+120
+120
+120
+0
+0
+0
+0
+0
+0
+
+Note: X_t, S_t and I_t must be >= 0
+
+Capacity constraints
+X 1 ≤ 100
+
+(16.13)
+
+X 2 ≤ 100
+
+(16.14)
+
+X 3 ≤ 100
+
+(16.15)
+
+X 4 ≤ 120
+
+(16.16)
+
+X 5 ≤ 120
+
+(16.17)
+
+X 6 ≤ 120
+
+(16.18)
+
+Inventory balance constraints
+I1 − X 1 + S1 = 0
+
+(16.19)
+
+I2 − I1 − X 2 + S2 = 0
+
+(16.20)
+
+I3 − I2 − X 3 + S3 = 0
+
+(16.21)
+
+I4 − I3 − X 4 + S4 = 0
+
+(16.22)
+
+I5 − I4 − X 5 + S5 = 0
+
+(16.23)
+
+I6 − I5 − X 6 + S6 = 0
+
+(16.24)
+
+Non-negativity constraints
+X 1, X 2, X 3, X 4, X 5, X 6 ≥ 0
+
+(16.25)
+
+S1 , S2 , S3 , S4 , S5 , S6 ≥ 0
+
+(16.26)
+
+I1 , I2 , I3 , I4 , I5 , I6 ≥ 0
+
+(16.27)
+
+558
+
+Part III
+
+Principles in Practice
+
+Some linear programming packages allow entry of a problem formulation in a format
+almost identical to (16.6) to (16.27) via a text editor. While this is certainly convenient
+for very small problems, it can become prohibitively tedious for large ones. Because
+of this, the OM research community has done considerable work to develop modeling
+languages that provide user-friendly interfaces for describing large-scale optimization
+problems (see Fourer, Gay, and Kernighan 1993 for an excellent example of a modeling language). Conveniently for us, LP is becoming so prevalent that our spreadsheet
+package, Microsoft Excel, has an LP tool, called the Solver, built right into it. We can
+represent and solve formulations (16.6) to (16.27) right in the spreadsheet shown in
+Figure 16.1. The following technical note provides details on how to do this.
+
+Technical Note: Using the Excel LP Solver
+Although the reader should consult the Excel documentation for details about the release in
+use, we will provide a brief overview of the LP solver in Excel 2007. The ﬁrst step is to
+establish cells for the decision variables (B11:G13 in Figure 16.1). We have initially entered
+zeros for these, but we can set them to be anything we like; thus, we could start by setting
+X t = dt , which would be closer to an optimal solution than zeros. The spreadsheet is a
+good place to play what-if games with the data. However, eventually we will turn over the
+problem of ﬁnding optimal values for the decision variables to the LP solver. Notice that for
+convenience we have also entered a column that totals X t , St , and It . For example, cell H11
+contains a formula to sum cells B11:G11. This allows us to write the objective function more
+compactly.
+Once we have speciﬁed decision variables, we construct an objective function in cell B16.
+We do this by writing a formula that multiplies r (cell B2) by total sales (cell H12) and then
+subtracts the product of h (cell B3) and total inventory (cell H13). Since all the decision
+variables are zero at present, this formula also returns a zero; that is, the net proﬁt on no
+production with no initial inventory is zero.
+Next we need to specify the constraints (16.7) to (16.27). To do this, we need to develop
+formulas that compute the left-hand side of each constraint. For constraints (16.7) to (16.18)
+we really do not need to do this, since the left-hand sides are only X t and St and we already
+have cells for these in the variables portion of the spreadsheet. However, for clarity, we will
+copy them to cells B19:B30. We will not do the same for the non-negativity constraints (16.25)
+to (16.27), since it is a simple matter to choose all the decision variables and force them to be
+greater than or equal to zero in the Excel Solver menu. Constraints (16.19) to (16.24) require
+us to do work, since the left-hand sides are formulas of multiple variables. For instance, cell
+B31 contains a formula to compute I1 − I0 − X 1 + S1 (that is, B13 − B4 − B11 + B12). We
+have given these cells names to remind us of what they represent, although any names could
+be used, since they are not necessary for the computation. We have also copied the values
+
+Figure 16.2
+Speciﬁcation of objectives
+and constraints in Excel.
+
+Solver Parameters
+Set Target Cell:
+
+$B$16
+
+Equal To:
+Max
+By Changing Cells:
+
+Min
+
+$B$11:$G$13
+
+Solve
+Value of:
+
+0
+
+Close
+Guess
+
+Subject to the Constraints:
+$B$11:$G$13 >= 0
+$B$19:$B$30 <= $D$19:$D$30
+$B$31:$B$36 = 0
+
+Options
+Add
+Change
+Reset All
+Delete
+Help
+
+Chapter 16
+
+559
+
+Aggregate and Workforce Planning
+
+Figure 16.3
+
+Add Constraint
+
+Add Constraint dialog box
+in Excel.
+
+Cell Reference:
+
+Constraint:
+
+$B$19:$B$30
+OK
+
+=D$19:$D$30
+
+<=
+Cancel
+
+Add
+
+Figure 16.4
+
+Solver Options
+
+Setting Excel to use linear
+programming.
+
+Max Time:
+
+100
+
+Iterations:
+
+100
+
+Precision:
+
+0.000001
+
+Tolerance:
+
+5
+
+Convergence:
+
+0.001
+
+seconds
+
+Help
+
+OK
+Cancel
+Load Model...
+%
+
+Save Model...
+Help
+
+Assume Linear Model
+
+Use Automatic Scaling
+
+Assume Non-Negative
+Estimates
+Derivatives
+
+Show Iteration Results
+Search
+
+Tangent
+
+Forward
+
+Newton
+
+Quadratic
+
+Central
+
+Conjugate
+
+of the right-hand sides of the constraints into cells D19:D36 and labeled them in column E
+for clarity. This is not strictly necessary, but does make it easier to specify constraints in the
+Excel Solver, since whole blocks of constraints can be speciﬁed (for example, B19:B30 ≤
+D19:D30). The equality and inequality symbols in column C are also unnecessary, but make
+the formulation easier to read.
+To use the Excel LP Solver, we choose Formula/Solver from the menu. In the dialog
+box that comes up (see Figure 16.2), we specify the cells containing the objective, choose to
+maximize or minimize, and specify the cells containing decision variables (this can be done
+by pointing with the mouse). Then we add constraints by choosing Add from the constraints
+section of the form. Another dialog box (see Figure 16.3) comes up in which we ﬁll in the
+cell containing the left-hand side of the constraint, choose the relationship (≥, ≤, or =), and
+ﬁll in the right-hand side.
+Note that the actual constraint is not shown explicitly in the spreadsheet; it is entered only
+in the Solver menu. However, the right-hand side of the constraint can be another cell in the
+spreadsheet or a constant. By specifying a range of cells for the right-hand side and a constant
+for the left-hand side, we can add a whole set of constraints in a single command. For instance,
+the range B11:G13 represents all the decision variables, so if we use this range as the left-hand
+side, a ≥ symbol, and a zero for the right-hand side, we will represent all the non-negativity
+constraints (16.25) to (16.27). By choosing the Add button after each constraint we enter,
+we can add all the model constraints. When we are done, we choose the OK button, which
+returns us to the original form. We have the option to edit or delete constraints at any time.
+Finally, before running the model, we must tell Excel that we want it to use the LP
+solution algorithm.2 We do this by choosing the Options button to bring up another dialog
+box (see Figure 16.4) and choosing the Assume Linear Model option. This form also allows
+2 Excel can also solve nonlinear optimization problems and will apply the nonlinear algorithm as a
+default. Since LP is much more efﬁcient, we deﬁnitely want to choose it as long as our model meets the
+requirements. All the formulations in this chapter are linear and therefore can use LP.
+
+560
+
+Part III
+
+Principles in Practice
+
+us to limit the time the model will run and to specify certain tolerances. If the model does
+not converge to an answer, the most likely reason is an error in one of the constraints.
+However, sometimes increasing the search time or reducing tolerances will ﬁx the problem
+when the solver cannot ﬁnd a solution. The reader should consult the Excel manual for more
+detailed documentation on this and other features, as well as information on upgrades that
+may have occurred since this writing. Choosing the OK button returns us to the original
+form.
+Once we have done all this, we are ready to run the model by choosing the Solve button.
+The program will pause to set up the problem in the proper format and then will go through
+a sequence of trial solutions (although not for long in such a small problem as this).
+
+Basically, LP works by ﬁrst ﬁnding a feasible solution—one that satisﬁes all the
+constraints—and then generating a succession of new solutions, each better than the
+last. When no further improvement is possible, it stops and the solution is optimal: It
+maximizes or minimizes the objective function. Appendix 16A provides background on
+how this process works.
+The algorithm will stop with one of three answers:
+1. Could not ﬁnd a feasible solution. This probably means that the problem is
+infeasible; that is, there is no solution that satisﬁes all the constraints. This
+could be due to a typing error (e.g., a plus sign was incorrectly typed as a minus
+sign) or a real infeasibility (e.g., it is not possible to meet demand with
+capacity). Notice that by clever formulation, one can avoid having the algorithm
+terminate with this depressing message when real infeasibilities exist. For
+instance, in formulation (16.6) to (16.27), we did not force sales to be equal to
+demand. Since cumulative demand exceeds cumulative capacity, it is obvious
+that this would not have been feasible. By setting separate sales and production
+variables, we let the computer tell us where demand cannot be met. Many
+variations on this trick are possible.
+2. Does not converge. This means either that the algorithm could not ﬁnd an
+optimal solution within the allotted time (so increasing the time or decreasing
+the tolerances under the Options menu might help) or that the algorithm is able
+to continue ﬁnding better and better solutions indeﬁnitely. This second
+possibility can occur when the problem is unbounded: The objective can be
+driven to inﬁnity by letting some variables grow positive or negative without
+bound. Usually this is the result of a failure to properly constrain a decision
+variable. For instance, in the above model, if we forgot to specify that all
+decision variables must be non-negative, then the model will be able to make
+the objective arbitrarily large by choosing negative values of It , t = 1, . . . , 6.
+Of course, we do not generate revenue via negative inventory levels, so it is
+important that non-negativity constraints be included to rule out this
+nonsensical behavior.3
+3. Found a solution. This is the outcome we want. When it occurs, the program
+will write the optimal values of the decision variables, objective value, and
+constraints into the spreadsheet. Figure 16.5 shows the spreadsheet as modiﬁed
+by the LP algorithm. The program also offers three reports—Answer,
+3 We will show how to modify the formulation to allow for backordering, which is like allowing negative
+inventory positions, without this inappropriately affecting the objective function, later in this chapter.
+
+Chapter 16
+
+Figure 16.5
+Output spreadsheet for LP
+example.
+
+A
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+
+561
+
+Aggregate and Workforce Planning
+B
+
+C
+
+D
+
+E
+
+F
+
+G
+
+H
+
+Constants:
+r
+h
+I_0
+t
+c_t
+d_t
+
+10
+1
+0
+1
+100
+80
+
+2
+100
+100
+
+3
+100
+120
+
+4
+120
+140
+
+5
+120
+90
+
+6
+120
+140
+
+Total
+660
+670
+
+Variables:
+t
+X_t
+S_t
+I_t
+
+1
+100
+80
+20
+
+2
+100
+100
+20
+
+3
+100
+120
+0
+
+4
+120
+120
+0
+
+5
+110
+90
+20
+
+6
+120
+140
+0
+
+Total
+650
+650
+60
+
+Objective:
+Net Profit:
+
+$6,440
+
+Constraints:
+S_1
+S_2
+S_3
+S_4
+S_5
+S_6
+X_1
+X_2
+X_3
+X_4
+X_5
+X_6
+I_1-I_0-X_1+S_1
+I_2-I_1-X_2+S_2
+I_3-I_2-X_3+S_3
+I_4-I_3-X_4+S_4
+I_5-I_4-X_5+S_5
+I_6-I_5-X_6+S_6
+
+80
+100
+120
+120
+90
+140
+100
+100
+100
+120
+110
+120
+0
+0
+0
+0
+0
+0
+
+r*(S_1+S_2+S_3+S_4+S_5+S_6) - h*(I_1+I_2+I_3+I_4+I_5+I_6)
+
+<=
+<=
+<=
+<=
+<=
+<=
+<=
+<=
+<=
+<=
+<=
+<=
+=
+=
+=
+=
+=
+=
+
+80
+100
+120
+140
+90
+140
+100
+100
+100
+120
+120
+120
+0
+0
+0
+0
+0
+0
+
+d_1
+d_2
+d_3
+d_4
+d_5
+d_6
+c_1
+c_2
+c_3
+c_4
+c_5
+c_6
+
+Note: X_t, S_t and I_t must be >= 0
+
+Sensitivity, and Limits—which write information about the solution into other
+spreadsheets. For instance, highlighting the Answer report generates a
+spreadsheet with the information shown in Figures 16.6 and 16.7. Figure 16.8
+contains some of the information contained in the report generated by choosing
+Sensitivity.
+Now that we have generated a solution, let us interpret it. Both Figure 16.5—the
+ﬁnal spreadsheet—and Figure 16.6 show the optimal decision variables. From these we
+see that it is not optimal to produce at full capacity in every period. Speciﬁcally, the
+solution calls for producing only 110 units in month 5 when capacity is 120. This might
+seem odd given that demand exceeds capacity. However, if we look more carefully, we
+see that cumulative demand for periods 1 to 4 is 440 units, while cumulative capacity for
+those periods is only 420 units. Thus, even when we run ﬂat out for the ﬁrst 4 months,
+we will fall short of meeting demand by 20 units. Demand in the ﬁnal 2 months is only
+230 units, while capacity is 240 units. Since our model does not permit backordering, it
+does not make sense to produce more than 230 units in months 5 and 6. Any extra units
+cannot be used to make up a previous shortfall.
+Figure 16.7 gives more details on the constraints by showing which ones are binding
+or tight (i.e., equal to the right-hand side) and which ones are nonbinding or slack, and
+by how much. Most interesting are the constraints on sales, given in (16.7) to (16.12),
+and capacity, in (16.13) to (16.18). As we have already noted, the capacity constraint on
+X 5 is nonbinding. Since we produce only 110 units in month 5 and have capacity for
+120, this constraint is slack by 10 units. This means that if we changed this constraint
+
+562
+
+Part III
+
+Principles in Practice
+
+Figure 16.6
+
+Figure 16.7
+
+Optimal values report for LP example.
+
+Optimal constraint status for LP example.
+
+Microsoft Excel 12.0 Answer Report
+Worksheet: [BasicCap.xls]Figure 16.6
+Report Created: 8/29/2007 3:11:48 PM
+
+Microsoft Excel 12.0 Answer Report
+Worksheet: [BasicCap.xls]Figure 16.7
+Report Created: 8/29/2007 3:11:48 PM
+
+Target Cell (Max)
+Cell
+Name
+$B$16 Net_Profit
+
+Original Value Final Value
+$0.00
+$6,440.00
+
+Adjustable Cells
+Cell
+Name
+$B$11 X_1
+$C$11 X_2
+$D$11 X_3
+$E$11 X_4
+$F$11 X_5
+$G$11 X_6
+$B$12 S_1
+$C$12 S_2
+$D$12 S_3
+$E$12 S_4
+$F$12 S_5
+$G$12 S_6
+$B$13 I_1
+$C$13 I_2
+$D$13 I_3
+$E$13 I_4
+$F$13 I_5
+$G$13 I_6
+
+Original Value Final Value
+0
+100
+0
+100
+0
+100
+0
+120
+0
+110
+0
+120
+0
+80
+0
+100
+0
+120
+0
+120
+0
+90
+0
+140
+0
+20
+0
+20
+0
+0
+0
+0
+0
+20
+0
+0
+
+Constraints
+Cell
+Name
+Cell Value
+Formula
+0 $B$31=0
+$B$31 I_1-I_0-X_1+S_1
+0 $B$32=0
+$B$32 I_2-I_1-X_2+S_2
+0 $B$33=0
+$B$33 I_3-I_2-X_3+S_3
+0 $B$34=0
+$B$34 I_4-I_3-X_4+S_4
+0 $B$35=0
+$B$35 I_5-I_4-X_5+S_5
+0 $B$36=0
+$B$36 I_6-I_5-X_6+S_6
+80 $B$19<=$D$19
+$B$19 S_1
+100 $B$20<=$D$20
+$B$20 S_2
+120 $B$21<=$D$21
+$B$21 S_3
+120 $B$22<=$D$22
+$B$22 S_4
+90 $B$23<=$D$23
+$B$23 S_5
+140 $B$24<=$D$24
+$B$24 S_6
+100 $B$25<=$D$25
+$B$25 X_1
+100 $B$26<=$D$26
+$B$26 X_2
+100 $B$27<=$D$27
+$B$27 X_3
+120 $B$28<=$D$28
+$B$28 X_4
+110 $B$29<=$D$29
+$B$29 X_5
+120 $B$30<=$D$30
+$B$30 X_6
+100 $B$11>=0
+$B$11 X_1
+100 $C$11>=0
+$C$11 X_2
+100 $D$11>=0
+$D$11 X_3
+120 $E$11>=0
+$E$11 X_4
+110 $F$11>=0
+$F$11 X_5
+120 $G$11>=0
+$G$11 X_6
+80 $B$12>=0
+$B$12 S_1
+100 $C$12>=0
+$C$12 S_2
+120 $D$12>=0
+$D$12 S_3
+120 $E$12>=0
+$E$12 S_4
+90 $F$12>=0
+$F$12 S_5
+140 $G$12>=0
+$G$12 S_6
+20 $B$13>=0
+$B$13 I_1
+20 $C$13>=0
+$C$13 I_2
+0 $D$13>=0
+$D$13 I_3
+0 $E$13>=0
+$E$13 I_4
+20 $F$13>=0
+$F$13 I_5
+0 $G$13>=0
+$G$13 I_6
+
+Status
+Not Binding
+Not Binding
+Not Binding
+Not Binding
+Not Binding
+Not Binding
+Binding
+Binding
+Binding
+Not Binding
+Binding
+Binding
+Binding
+Binding
+Binding
+Binding
+Not Binding
+Binding
+Not Binding
+Not Binding
+Not Binding
+Not Binding
+Not Binding
+Not Binding
+Not Binding
+Not Binding
+Not Binding
+Not Binding
+Not Binding
+Not Binding
+Not Binding
+Not Binding
+Binding
+Binding
+Not Binding
+Binding
+
+Slack
+0
+0
+0
+0
+0
+0
+0
+0
+0
+20
+0
+0
+0
+0
+0
+0
+10
+0
+100
+100
+100
+120
+110
+120
+80
+100
+120
+120
+90
+140
+20
+20
+0
+0
+20
+0
+
+by a little (e.g., reduced capacity in month 5 from 120 to 119 units), it would not change
+the optimal solution at all.
+In this same vein, all sales constraints are tight except that for S4 . Since sales are
+limited to 140, but optimal sales are 120, this constraint has slackness of 20 units. Again,
+if we were to change this sales constraint by a little (e.g., limit sales to 141 units), the
+optimal solution would remain the same.
+In contrast with these slack constraints, consider a binding constraint. For instance,
+consider the capacity constraint on X 1 , which is the seventh one shown in Figure 16.7.
+Since the model chooses production equal to capacity in month 1, this constraint is tight.
+If we were to change this constraint by increasing or decreasing capacity, the solution
+would change. If we relax the constraint by increasing capacity, say, to 101 units, then
+we will be able to satisfy an additional unit of demand and therefore the net proﬁt will
+increase. Since we will produce the extra item in month 1, hold it for 3 months to month
+4 at a cost of $1 per month, and then sell it for $10, the overall increase in the objective
+from this change will be $10 − 3 = $7. Conversely, if we tighten the constraint by
+decreasing capacity, say to 99 units, then we will be able to carry only 19 units from
+
+Chapter 16
+
+Figure 16.8
+Sensitivity analysis for LP
+example.
+
+563
+
+Aggregate and Workforce Planning
+
+Microsoft Excel 12.0 Sensitivity Report
+Worksheet: [BasicCap.xls]Figure 16.8
+Report Created: 8/29/2007 3:11:48 PM
+Adjustable Cells
+Cell
+Name
+$B$11 X_1
+$C$11 X_2
+$D$11 X_3
+$E$11 X_4
+$F$11 X_5
+$G$11 X_6
+$B$12 S_1
+$C$12 S_2
+$D$12 S_3
+$E$12 S_4
+$F$12 S_5
+$G$12 S_6
+$B$13 I_1
+$C$13 I_2
+$D$13 I_3
+$E$13 I_4
+$F$13 I_5
+$G$13 I_6
+
+Final Reduced Objective
+Cost
+Coefficient
+Value
+0
+0
+100
+0
+0
+100
+0
+0
+100
+0
+0
+120
+0
+0
+110
+0
+0
+120
+0
+10
+80
+0
+10
+100
+0
+10
+120
+0
+10
+120
+0
+10
+90
+0
+10
+140
+0
+-1
+20
+0
+-1
+20
+0
+-1
+0
+-11
+-1
+0
+0
+-1
+20
+-2
+-1
+0
+
+Allowable
+Increase
+1E+30
+1E+30
+1E+30
+1E+30
+1
+1E+30
+1E+30
+1E+30
+1E+30
+1
+1E+30
+1E+30
+3
+2
+1
+11
+1
+2
+
+Allowable
+Decrease
+7
+8
+9
+10
+9
+1
+3
+2
+1
+7
+10
+9
+7
+7
+7
+1E+30
+9
+1E+30
+
+Allowable
+Increase
+20
+20
+20
+20
+110
+20
+0
+0
+0
+1E+30
+10
+10
+20
+20
+20
+20
+1E+30
+20
+
+Allowable
+Decrease
+0
+0
+0
+120
+10
+10
+20
+20
+20
+20
+90
+20
+0
+0
+0
+120
+10
+10
+
+Constraints
+Final Shadow
+Price
+Cell
+Name
+Value
+7
+0
+$B$31 I_1-I_0-X_1+S_1
+8
+0
+$B$32 I_2-I_1-X_2+S_2
+9
+0
+$B$33 I_3-I_2-X_3+S_3
+10
+0
+$B$34 I_4-I_3-X_4+S_4
+0
+0
+$B$35 I_5-I_4-X_5+S_5
+1
+0
+$B$36 I_6-I_5-X_6+S_6
+3
+80
+$B$19 S_1
+2
+100
+$B$20 S_2
+1
+120
+$B$21 S_3
+0
+120
+$B$22 S_4
+10
+90
+$B$23 S_5
+9
+140
+$B$24 S_6
+7
+100
+$B$25 X_1
+8
+100
+$B$26 X_2
+9
+100
+$B$27 X_3
+10
+120
+$B$28 X_4
+0
+110
+$B$29 X_5
+1
+120
+$B$30 X_6
+
+Constraint
+R.H. Side
+0
+0
+0
+0
+0
+0
+80
+100
+120
+140
+90
+140
+100
+100
+100
+120
+120
+120
+
+month 1 to month 3 and will therefore lose one unit of demand in month 3. The loss in
+net proﬁt from this unit will be $8 ($10 − $2 for 2 months’ holding).
+The sensitivity data generated by the LP algorithm shown in Figure 16.8 gives
+us more direct information on the sensitivity of the ﬁnal solution to changes in the
+constraints. This report has a line for every constraint in the model and reports three
+important pieces of information:4
+1. The shadow price represents the amount the optimal objective will be
+increased by a unit increase in the right-hand side of the constraint.
+2. The allowable increase represents the amount by which the right-hand side can
+be increased before the shadow price no longer applies.
+3. The allowable decrease represents the amount by which the right-hand side
+can be decreased before the shadow price no longer applies.
+Appendix 16A gives a geometric explanation of how these numbers are computed.
+4 The report also contains sensitivity information about the coefﬁcients in the objective function. See
+Appendix 16A for a discussion of this.
+
+564
+
+Part III
+
+Principles in Practice
+
+To see how these data are interpreted, consider the information in Figure 16.8 on the
+seventh line of the constraint section for the capacity constraint X 1 ≤ 100. The shadow
+price is $7, which means that if the constraint is changed to X 1 ≤ 101, net proﬁt will
+increase by $7, precisely as we computed above. The allowable increase is 20 units, which
+means that each unit capacity increase in period 1 up to a total of 20 units increases net
+proﬁt by $7. Therefore, an increase in capacity from 100 to 120 will increase net proﬁt
+by 20 × 7 = $140. Above 20 units, we will have satisﬁed all the lost demand in month 4,
+and therefore further increases will not improve proﬁt. Thus, this constraint will become
+nonbinding once the right-hand side exceeds 120. Notice that the allowable decrease is
+zero for this constraint. What this means is that the shadow price of $7 is not valid for
+decreases in the right-hand side. As we computed above, the decrease in net proﬁt from
+a unit decrease in the capacity in month 1 is $8. In general, we can determine only the
+effect of changes outside the allowable increase or decrease range by actually changing
+the constraints and rerunning the LP solver.
+The above examples are illustrative of the following general behavior of linear
+programming models:
+1. Changing the right-hand sides of nonbinding constraints by a small amount
+does not affect the optimal solution. The shadow price of a nonbinding
+constraint is always zero.
+2. Increasing the right-hand side of a binding constraint will increase the objective
+by an amount equal to the shadow price times the size of the increase, provided
+that the increase is smaller than the allowable increase.
+3. Decreasing the right-hand side of a binding constraint will decrease the
+objective by an amount equal to the shadow price times the size of the decrease,
+provided that the decrease is smaller than the allowable decrease.
+4. Changes in the right-hand sides beyond the allowable increase or decrease
+range have an indeterminate effect and must be evaluated by resolving the
+modiﬁed model.
+5. All these sensitivity results apply to changes in one right-hand side variable at
+a time. If multiple changes are made, the effects are not necessarily additive.
+Generally, multiple-variable sensitivity analysis must be done by resolving the
+model under the multiple changes.
+
+16.3
+
+Product Mix Planning
+Now that we have set up the basic framework for formulating and solving aggregate
+planning problems, we can examine some commonly encountered situations. The ﬁrst
+realistic aggregate planning issue we will consider is that of product mix planning. To do
+this, we need to extend the model of the previous section to consider multiple products
+explicitly. As mentioned previously, allowing multiple products raises the possibility of
+a “ﬂoating bottleneck.” That is, if the different products require different amounts of
+processing time on the various workstations, then the workstation that is most heavily
+loaded during a period may well depend on the mix of products run during that period.
+If ﬂexibility in the mix is possible, we can use the AP module to adjust the mix in
+accordance with available capacity. And if the mix is essentially ﬁxed, we can use the
+AP module to identify bottlenecks.
+
+Chapter 16
+
+16.3.1
+
+565
+
+Aggregate and Workforce Planning
+
+Basic Model
+We start with a direct extension of the previous single-product model in which demands
+are assumed ﬁxed and the objective is to minimize the inventory carrying cost of meeting
+these demands. To do this, we introduce the following notation:
+i = an index of product, i = 1, . . . , m, so m represents total number of products
+j = an index of workstation, j = 1, . . . , n, so n represents total number of
+workstations
+t = an index of period, t = 1, . . . , t¯, so t¯ represents planning horizon
+d̄it = maximum demand for product i in period t
+d it = minimum sales5 allowed of product i in period t
+ai j = time required on workstation j to produce one unit of product i
+c jt = capacity of workstation j in period t in units consistent with those used to
+deﬁne ai j
+ri = net proﬁt from one unit of product i
+h i = cost6 to hold one unit of product i for one period t
+X it = amount of product i produced in period t
+Sit = amount of product i sold in period t
+Iit = inventory of product i at end of period t (Ii0 is given as data)
+Again, X it , Sit , and Iit are decision variables, while the other symbols are constants
+representing input data. We can give a linear program formulation of the problem to
+maximize net proﬁt minus inventory carrying cost subject to upper and lower bounds on
+sales and capacity constraints as
+Maximize
+Subject to:
+
+t¯
+
+t=1
+
+m
+
+i=1 ri Sit − h i Iit
+
+(16.28)
+
+d it ≤ Sit ≤ d̄it
+m
+i=1 ai j X it ≤ c jt
+
+for all i, t
+
+(16.29)
+
+for all j, t
+
+(16.30)
+
+Iit = Iit−1 + X it − Sit
+
+for all i, t
+
+(16.31)
+
+X it , Sit , Iit ≥ 0
+
+for all i, t
+
+(16.32)
+
+In comparison to the previous single-product model, we have adjusted constraints
+(16.29) to include lower, as well as upper, bounds on sales. For instance, the ﬁrm may
+have long-term contracts that obligate it to produce certain minimum amounts of certain
+products. Conversely, the market for some products may be limited. To maximize proﬁt,
+the computer has incentive to set production so that all these constraints will be tight at
+their upper limits. However, this may not be possible due to capacity constraints (16.30).
+Notice that unlike in the previous formulation, we now have capacity constraints for each
+workstation in each period. By noting which of these constraints are tight, we can identify
+those resources that limit production. Constraints (16.31) are the multiproduct version of
+the balance equations, and constraints (16.32) are the usual non-negativity constraints.
+5 This might represent ﬁrm commitments that we do not want the computer program to violate.
+6 It is common to set h
+
+i equal to the raw materials cost of product i times a one-period interest rate to
+represent the opportunity cost of the money tied up in inventory; but it may make sense to use higher values
+to penalize inventory that causes long, uncompetitive cycle times.
+
+566
+
+Part III
+
+Principles in Practice
+
+We can use LP (16.28)–(16.32) to obtain several pieces of information, including
+1. Demand feasibility. We can determine whether a set of demands is
+capacity-feasible. If the constraint Sit ≤ d̄it is tight, then the upper bound on
+demand d̄it is feasible. If not, then it is capacity-infeasible. If demands given by
+the lower bounds on demand d it are capacity-infeasible, then the computer
+program will return a “could not ﬁnd a feasible solution” message and the user
+must make changes (e.g., reduce demands or increase capacity) in order to get a
+solution.
+2. Bottleneck locations. Constraints (16.30) restrict production on each
+workstation in each period. By noting which of these constraints are binding,
+we can determine which workstations limit capacity in which periods. A
+workstation that is consistently binding in many periods is a clear bottleneck
+and requires close management attention.
+3. Product mix. If we are unable, for capacity reasons, to attain all the upper
+bounds on demand, then the computer will reduce sales below their maximum
+for some products. It will try to maximize revenue by producing those products
+with high net proﬁt, but because of the capacity constraints, this is not a simple
+matter, as we will see in the following example.
+
+16.3.2
+
+A Simple Example
+Let us consider a simple product mix example that shows why one needs a formal optimization method instead of a simpler ad hoc approach for these problems. We simplify
+matters by assuming a planning horizon of only one period. While this is certainly not
+a realistic assumption in general, in situations where we know in advance that we will
+never carry inventory from one period to the next, solving separate one-period problems
+for each period will yield the optimal solution. For example, if demands and cost coefﬁcients are constant from period to period, then there is no incentive to build up inventory
+and therefore this will be the case.
+Consider a situation in which a ﬁrm produces two products, which we will call
+products 1 and 2. Table 16.1 gives descriptive data for these two products. In addition to
+the direct raw material costs associated with each product, we assume a $5,000 per week
+ﬁxed cost for labor and capital. Furthermore, there are 2,400 minutes (5 days per week,
+8 hours per day) of time available on workstations A to D. We assume that all these data
+are identical from week to week. Therefore, there is no reason to build inventory in one
+week to sell in a subsequent week. (If we can meet maximum demand this week with this
+week’s production, then the same thing is possible next week.) Thus, we can restrict our
+Table 16.1
+
+Input Data for Single-Period AP
+Example
+
+Product
+
+1
+
+2
+
+Selling price
+Raw material cost
+Maximum weekly sales
+Minutes per unit on workstation A
+Minutes per unit on workstation B
+Minutes per unit on workstation C
+Minutes per unit on workstation D
+
+$90
+$45
+100
+15
+15
+15
+15
+
+$100
+$40
+50
+10
+30
+5
+5
+
+Chapter 16
+
+Aggregate and Workforce Planning
+
+567
+
+attention to a single week, and the only issue is the appropriate amount of each product
+to produce.
+A Cost Approach. Let us begin by looking at this problem from a simple cost standpoint. Net proﬁt per unit of product 1 sold is $45 ($90 − 45), while net proﬁt per unit of
+product 2 sold is $60 ($100 − 40). This would seem to indicate that we should emphasize
+production of product 2. Ideally, we would like to produce 50 units of product 2 to meet
+maximum demand, but we must check the capacity of the four workstations to make sure
+this is possible. Since workstation B requires the most time to make a unit of product 2
+(30 minutes) among the four workstations, this is the potential constraint. Producing 50
+units of product 2 on workstation B will require
+30 minutes per unit × 50 units = 1,500 minutes
+This is less than the available 2,400 minutes on workstation B, so producing 50 units of
+product 2 is feasible.
+Now we need to determine how many units of product 1 we can produce with the
+leftover capacity. The unused time on workstations A to D after subtracting the time to
+make 50 units of product 2 we compute as
+2,400 − 10(50) = 1,900 minutes on workstation A
+2,400 − 30(50) = 900 minutes on workstation B
+2,400 − 5(50) = 2,150 minutes on workstation C
+2,400 − 5(50) = 2,150 minutes on workstation D
+Since one unit of product 1 requires 15 minutes of time on each of the four workstations,
+we can compute the maximum possible production of product 1 at each workstation by
+dividing the unused time by 15. Since workstation B has the least remaining time, it is
+the potential bottleneck. The maximum production of product 1 on workstation B (after
+subtracting the time to produce 50 units of product 2) is
+900
+= 60
+15
+Thus, even though we can sell 100 units of product 1, we have capacity for only 60.
+The weekly proﬁt from making 60 units of product 1 and 50 units of product 2 is
+$45 × 60 + $60 × 50 − $5,000 = $700
+Is this the best we can do?
+A Bottleneck Approach. The preceding analysis is entirely premised on costs and
+considers capacity only as an afterthought. A better method might be to look at cost and
+capacity, by computing a ratio representing proﬁt per minute of bottleneck time used
+for each product. This requires that we ﬁrst identify the bottleneck, which we do by
+computing the minutes required on each workstation to satisfy maximum demand and
+
+568
+
+Part III
+
+Principles in Practice
+
+seeing which machine is most overloaded.7 This yields
+15(100) + 10(50) = 2,000 minutes on workstation A
+15(100) + 30(50) = 3,000 minutes on workstation B
+15(100) + 5(50) = 1,750 minutes on workstation C
+15(100) + 5(50) = 1,750 minutes on workstation D
+Only workstation B requires more than the available 2,400 minutes, so we designate
+it the bottleneck. Hence, we would like to make the most proﬁtable use of our time on
+workstation B. To determine which of the two products does this, we compute the ratio
+of net proﬁt to minutes on workstation B as
+$45
+= $3 per minute spent processing product 1
+15
+$60
+= $2 per minute spent processing product 2
+30
+This calculation indicates the reverse of our previous cost analysis. Each minute
+spent processing product 1 on workstation B nets us $3, as opposed to only $2 per
+minute spent on product 2. Therefore, we should emphasize production of product 1, not
+product 2. If we produce 100 units of product 1 (the maximum amount allowed by the
+demand constraint), then since all workstations require 15 minutes per unit of one, the
+unused time on each workstation is
+2,400 − 15(100) = 900 minutes
+Then since workstation B is the slowest operation for producing product 2, this is what
+limits the amount we can produce. Each unit of product 2 requires 30 minutes on B;
+thus, we can produce
+900
+= 30
+30
+units of product 2. The net proﬁt from producing 100 units of product 1 and 30 units of
+product 2 is
+$45 × 100 + $60 × 30 − $5,000 = $1,300
+This is clearly better than the $700 we got from using our original analysis and, it turns
+out, is the best we can do. But will this method always work?
+A Linear Programming Approach. To answer the question of whether the previous
+“bottleneck ratio” method will always determine the optimal product mix, we consider
+a slightly modiﬁed version of the previous example, with data shown in Table 16.2. The
+only changes in these data relative to the previous example are that the processing time of
+product 2 on workstation B has been increased from 30 to 35 minutes and the processing
+times for products 1 and 2 on workstation D have been increased from 15 and 5 to 25
+and 14, respectively.
+7 The alert reader should be suspicious at this point, since we know that the identity of the “bottleneck”
+can depend on the product mix in a multiproduct case.
+
+Chapter 16
+
+569
+
+Aggregate and Workforce Planning
+
+Table 16.2
+
+Input Data for Modiﬁed
+Single-Period AP Example
+
+Product
+
+1
+
+2
+
+Selling price
+Raw material cost
+Maximum weekly sales
+Minutes per unit on workstation A
+Minutes per unit on workstation B
+Minutes per unit on workstation C
+Minutes per unit on workstation D
+
+$90
+$45
+100
+15
+15
+15
+25
+
+$100
+$40
+50
+10
+35
+5
+14
+
+To execute our ratio-based approach on this modiﬁed problem, we ﬁrst check for the
+bottleneck by computing the minutes required on each workstation to meet maximum
+demand levels:
+15(100) + 10(50) = 2,000 minutes on workstation A
+15(100) + 35(50) = 3,250 minutes on workstation B
+15(100) + 5(50) = 1,750 minutes on workstation C
+25(100) + 14(50) = 3,200 minutes on workstation D
+Workstation B is still the most heavily loaded resource, but now workstation D also
+exceeds the available 2,400 minutes.
+If we designate workstation B as the bottleneck, then the ratio of net proﬁt to minute
+of time on the bottleneck is
+$45
+= $3.00 per minute spent processing product 1
+15
+$60
+= $1.71 per minute spent processing product 2
+35
+which, as before, indicates that we should produce as much product 1 as possible.
+However, now it is workstation D that is slowest for product 1. The maximum amount
+that can be produced on D in 2,400 minutes is
+2,400
+= 96
+25
+Since 96 units of product 1 use up all available time on workstation D, we cannot produce
+any product 2. The net proﬁt from this mix, therefore, is
+$45 × 96 − $5,000 = −$680
+This doesn’t look very good—we are losing money. Moreover, while we used workstation B as our bottleneck for the purpose of computing our ratios, it was workstation
+D that determined how much product we could produce. Therefore, perhaps we should
+have designated workstation D as our bottleneck. If we do this, the ratio of net proﬁt to
+minute of time on the bottleneck is
+$45
+= $1.80 per minute spent processing product 1
+25
+$60
+= $4.29 per minute spent processing product 2
+14
+
+570
+
+Part III
+
+Principles in Practice
+
+This indicates that it is more proﬁtable to emphasize production of product 2. Since
+workstation B is slowest for product 2, we check its capacity to see how much product
+2 we can produce, and we ﬁnd
+2,400
+= 68.57
+35
+Since this is greater than maximum demand, we should produce the maximum amount
+of product 2, which is 50 units. Now we compute the unused time on each machine as
+2,400 − 10(50) = 1,900 minutes on workstation A
+2,400 − 35(50) = 650 minutes on workstation B
+2,400 − 5(50) = 2,150 minutes on workstation C
+2,400 − 14(50) = 1,700 minutes on workstation D
+Dividing the unused time by the minutes required to produce one unit of product 1 on
+each workstation gives us the maximum production of product 1 on each to be
+1,900
+= 126.67 units on workstation A
+15
+650
+= 43.33 units on workstation B
+15
+2,150
+= 143.33 units on workstation C
+15
+1,700
+= 68 units on workstation D
+25
+Thus, workstation B limits production of product 1 to 43 units, so total net proﬁt for this
+solution is
+$45 × 43 + $60 × 50 − $5,000 = −$65
+This is better, but we are still losing money. Is this the best we can do?
+Finally, let’s bring out our big gun (not really that big, since it is included in popular spreadsheet programs) and solve the problem with a linear programming package.
+Letting X 1 (X 2 ) represent the quantity of product 1 (2) produced, we formulate a linear
+programming model to maximize proﬁt subject to the demand and capacity constraints as
+Maximize
+
+45X 1 + 60X 2 − 5,000
+
+(16.33)
+
+Subject to:
+X 1 ≤ 100
+
+(16.34)
+
+X 2 ≤ 50
+
+(16.35)
+
+15X 1 + 10X 2 ≤ 2,400
+
+(16.36)
+
+15X 1 + 35X 2 ≤ 2,400
+
+(16.37)
+
+15X 1 + 5X 2 ≤ 2,400
+
+(16.38)
+
+25X 1 + 14X 2 ≤ 2,400
+
+(16.39)
+
+Chapter 16
+
+571
+
+Aggregate and Workforce Planning
+
+Problem (16.33)–16.39) is trivial for any LP package. Ours (Excel) reports the
+solution to this problem to be
+Optimal objective = $557.94
+X 1∗ = 75.79
+X 2∗ = 36.09
+Even if we round this solution down (which will certainly still be capacity-feasible, since
+we are reducing production amounts) to integer values
+X 1∗ = 75
+X 2∗ = 36
+we get an objective of
+$45 × 75 + $60 × 36 − $5,000 = $535
+So making as much product 1 as possible and making as much product 2 as possible
+both result in negative proﬁt. But making a mix of the two products generates positive
+proﬁt!
+The moral of this exercise is that even simple product mix problems can be subtle.
+No trick that chooses a dominant product or identiﬁes the bottleneck before knowing
+the product mix can ﬁnd the optimal solution in general. While such tricks can work for
+speciﬁc problems, they can result in extremely bad solutions in others. The only method
+guaranteed to solve these problems optimally is an exact algorithm such as those used in
+linear programming packages. Given the speed, power, and user-friendliness of modern
+LP packages, one should have a very good reason to forsake LP for an approximate
+method.
+
+16.3.3
+
+Extensions to the Basic Model
+A host of variations on the basic problem given in formulation (16.28)–(16.32) are
+possible. We discuss a few of these next; the reader is asked to think of others in the
+problems at chapter’s end.
+Other Resource Constraints. Formulation (16.28)–(16.32) contains capacity constraints for the workstations, but not for other resources, such as people, raw materials,
+and transport devices. In some systems, these may be important determinants of overall
+capacity and therefore should be included in the AP module.
+Generically, if we let
+bi j = units of resource j required per unit of product i
+k jt = number of units of resource j available in period t
+X it = amount of product i produced in period t
+we can express the capacity constraint on resource j in period t as
+m
+
+i=1
+
+bi j X it ≤ k jt
+
+(16.40)
+
+572
+
+Part III
+
+Principles in Practice
+
+Notice that bi j and k jt are the nonworkstation analogs to ai j and c jt in formulation
+(16.28)–(16.32).
+As a speciﬁc example, suppose an inspector must check products 1, 2, and 3, which
+require 1, 2, and 1.5 hours, respectively, per unit to inspect. If the inspector is available
+a total of 160 hours per month, then the constraint on this person’s time in month t can
+be represented as
+X 1t + 2X 2t + 1.5X 3t ≤ 160
+If this constraint is binding in the optimal solution, it means that inspector time is a
+bottleneck and perhaps something should be reorganized to remove this bottleneck. (The
+plant could provide help for the inspector, simplify the inspection procedure to speed
+it up, or use quality-at-the-source inspections by the workstation operators to eliminate
+the need for the extra inspection step.)
+As a second example, suppose a ﬁrm makes four different models of circuit board,
+all of which require one unit of a particular component. The component contains leadingedge technology and is in short supply. If kt represents the total number of these components that can be made available in period t, then the constraint represented by component
+availability in each period t can be expressed as
+X 1t + X 2t + X 3t + X 4t ≤ kt
+Many other resource constraints can be represented in analogous fashion.
+Utilization Matching. As our discussion so far shows, it is straightforward to model
+capacity constraints in LP formulations of AP problems. However, we must be careful
+about how we use these constraints in actual practice, for two reasons.
+1. Low-level complexity. An AP module will necessarily gloss over details that
+can cause inefﬁciency in the short term. For instance, in the product mix
+example of the previous section, we assumed that it was possible to run the four
+machines 2,400 minutes per week. However, from our Factory Physics
+discussions of Part II, we know that it is virtually impossible to avoid some idle
+time on machines. Any source of randomness (machine failures, setups, errors
+in the scheduling process, etc.) can diminish utilization. While we cannot
+incorporate these directly in the AP model, we can account for their aggregate
+effect on utilization.
+2. Production control decisions. As we noted in Chapter 13, it may be
+economically attractive to set the production quota below full average capacity,
+in order to achieve predictable customer service without excessive overtime
+costs. If the quota-setting module indicates that we should run at less than full
+utilization, we should include this fact in the aggregate planning module in
+order to maintain consistency.
+These considerations may make it attractive to plan for production levels below full
+capacity. Although the decision of how close to capacity to run can be tricky, the mechanics of reducing capacity in the AP model are simple. If the c jt parameters represent practical estimates of realistic full capacity of workstation j in period t, adjusted for setups,
+worker breaks, machine failures, and other reasonable detractors, then we can simply
+deﬂate capacity by multiplying these by a constant factor. For instance, if either historical
+experience or the quote-setting module indicates that it is reasonable to run at a fraction
+
+Chapter 16
+
+573
+
+Aggregate and Workforce Planning
+
+q of full capacity, then we can replace constraints (16.30) in LP (16.28)–(16.32) by
+m
+
+
+ai j X it ≤ qc jt
+
+for all j, t
+
+i=t
+
+The result will be that a binding capacity constraint will occur whenever a workstation is loaded to 100q percent of capacity in a period.
+Backorders. In LP (16.28)–(16.32), we forced inventory to remain positive at all
+times. Implicitly, we were assuming that demands had to be met from inventory or lost;
+no backlogging of unmet demand was allowed. However, in many realistic situations,
+demand is not lost when not met on time. Customers expect to receive their orders even
+if they are late. Moreover, it is important to remember that aggregate planning is a longterm planning function. Just because the model says a particular order will be late, that
+does not mean that this must be so in practice. If the model predicts that an order due
+9 months from now will be backlogged, there may be ample time to renegotiate the due
+date. For that matter, the demand may really be only a forecast, to which a ﬁrm customer
+due date has not yet been attached. With this in mind, it makes sense to think of the
+aggregate planning module as a tool for reconciling projected demands with available
+capacity. By using it to identify problems that are far in the future, we can address them
+while there is still time to do something about them.
+We can easily modify LP (16.28)–(16.32) to permit backordering as follows:
+Maximize
+
+t¯
+
+
+ri Sit − h i Iit+ − πit−
+
+(16.41)
+
+t=1
+
+Subject to:
+d it ≤ Sit ≤ d̄it
+
+for all i, t
+
+(16.42)
+
+for all j, t
+
+(16.43)
+
+Iit = Iit−1 + X it − Sit
+
+for all i, t
+
+(16.44)
+
+Iit = Iit+ − Iit−
+
+for all i, t
+
+(16.45)
+
+X it , Sit , Iit+ , Iit− ≥ 0
+
+for all i, t
+
+(16.46)
+
+m
+
+
+ai j X it ≤ c jt
+
+i=1
+
+The main change was to redeﬁne the inventory variable Iit as the difference Iit+ − Iit− ,
+where Iit+ represents the inventory of product i carried from period t to t + 1 and Iit−
+represents the number of backorders carried from period t to t + 1. Both Iit+ and Iit− must
+be non-negative. However, Iit can be either positive or negative, and so we refer to it as
+the inventory position of product i in period t. A positive inventory position indicates
+on-hand inventory, while a negative inventory position indicates outstanding backorders.
+The coefﬁcient πi is the backorder analog to the holding cost h i and represents the penalty
+to carry one unit of product i on backorder for one period of time. Because both Iit− and
+Iit+ appear in the objective with negative coefﬁcients, the LP solver will never make
+both of them positive for the same period. This simply means that we won’t both carry
+inventory and incur a backorder penalty in the same period.
+In terms of modeling, the most troublesome parameters in this formulation are the
+backorder penalty coefﬁcients πi . What is the cost of being late by one period on one unit
+
+574
+
+Part III
+
+Principles in Practice
+
+of product i? For that matter, why should the lateness penalty be linear in the number
+of periods late or the number of units that are late? Clearly, asking someone in the
+organization for these numbers is out of the question. Therefore, one should view this
+type of model as a tool for generating various long-term production plans. By increasing
+or decreasing the πi coefﬁcients relative to the h i coefﬁcients, the analyst can increase or
+decrease the relative penalty associated with backlogging. High πi values tend to force
+the model to build up inventory to meet surges in demand, while low πi values tend to
+allow the model to be late on satisfying some demands that occur during peak periods.
+By generating both types of plans, the user can get an idea of what options are feasible
+and select among them.
+To accomplish this, we need not get overly ﬁne with the selection of cost coefﬁcients.
+We could set them with the simple equations
+h i = αpi
+
+(16.47)
+
+πi = β
+
+(16.48)
+
+where α represents the one-period interest rate, suitably inﬂated to penalize uncompetitive cycle times caused by excess inventory, and pi represents the raw materials cost of
+one unit of product i, so that αpi represents the interest lost on the money tied up by holding one unit of product i in inventory. Analogously, β represents a (somewhat artiﬁcial)
+cost per period of delay on any product. The assumption here is that the true cost of being
+late (expediting costs, lost customer goodwill, lost future orders, etc.) is independent of
+the cost or price of the product. If equations (16.47) and (16.48) are valid, then the user
+can ﬁx α and generate many different production plans by varying the single parameter β.
+Overtime. The previous representations of capacity assume each workstation is available a ﬁxed amount of time in each period. Of course, in many systems there is the
+possibility of increasing the time via the use of overtime. Although we will treat overtime in greater detail in our upcoming discussion of workforce planning, it makes sense
+to note quickly that it is a simple matter to represent the option of overtime in a product
+mix model, even when labor is not being considered explicitly.
+To do this, let
+l j = cost of 1 hour of overtime at workstation j; a cost parameter
+O jt = overtime at workstation j in period t in hours; a decision variable
+We can modify LP (16.41)–(16.46) to allow overtime at each workstation as follows:
+Maximize
+
+n
+t¯
+
+
+{ri Sit − h i Iit+ − πi Iit− −
+l j O jt }
+t=1
+
+(16.49)
+
+j=1
+
+Subject to:
+d it ≤ Sit ≤ d̄it
+
+for all i, t
+
+(16.50)
+
+ai j X it ≤ c jt + O jt
+
+for all j, t
+
+(16.51)
+
+Iit = Iit−1 + X it − Sit
+
+for all i, t
+
+(16.52)
+
+Iit = Iit+ − Iit−
+
+for all i, t
+
+(16.53)
+
+X it , Sit , Iit+ , Iit− O jt ≥ 0
+
+for all i, j, t
+
+(16.54)
+
+m
+
+i=1
+
+Chapter 16
+
+575
+
+Aggregate and Workforce Planning
+
+The two changes we have made to LP (16.41)–(16.46) were to
+¯ 
+1. Subtract the cost of overtime at stations 1, . . . , n, which is tt=1 nj=1 l j O jt ,
+from the objective function.
+2. Add the hours of overtime scheduled at station j in period t, denoted by O jt , to
+the capacity of this resource c jt in constraints (16.51).
+It is natural to include both backlogging and overtime in the same model, since these
+are both ways of addressing capacity problems. In LP (16.49)–(16.54), the computer has
+the option of being late in meeting demand (backlogging) or increasing capacity via
+overtime. The speciﬁc combination it chooses depends on the relative cost of backordering (πi ) and overtime (l j ). By varying these cost coefﬁcients, the user can generate a
+range of production plans.
+Yield Loss. In systems where product is scrapped at various points in the line due
+to quality problems, we must release extra material into the system to compensate for
+these losses. The result is that workstations upstream from points of yield loss are more
+heavily utilized than if there were no yield loss (because they must produce the extra
+material that will ultimately be scrapped). Therefore, to assess accurately the feasibility
+of a particular demand proﬁle relative to capacity, we must consider yield loss in the
+aggregate planning module in systems where scrap is an issue.
+We illustrate the basic effect of yield loss in Figure 16.9. In this simple line, α, β,
+and γ represent the fraction of product that is lost to scrap at workstations A, B, and C,
+respectively. If we require d units of product to come out of station C, then, on average, we
+will have to release d/(1 − γ ) units into station C. To get d/(1 − γ ) units out of station
+B, we will have to release d/[(1 − β)(1 − γ )] units into B on average. Finally, to get the
+needed d/[(1 − β)(1 − γ )] out of B, we will have to release d/[(1 − α)(1 − β)(1 − γ )]
+units into A.
+We can generalize the speciﬁc example of Figure 16.9 by deﬁning
+yi j = cumulative yield from station j onward (including station j) for product i
+If we want to get d units of product i out of the end of the line on average, then we
+must release
+d
+yi j
+
+(16.55)
+
+units of i into station j. These values can easily be computed in the manner used for
+the example in Figure 16.9 and updated in a spreadsheet or database as a function of the
+estimated yield loss at each station.
+Using equation (16.55) to adjust the production amounts X it in the manner illustrated
+in Figure 16.9, we can modify the LP formulation (16.28)–(16.32) to consider yield loss
+
+Figure 16.9
+Yield loss in a
+three-station line.
+
+1–␣
+
+A
+
+␣
+
+1–␤
+
+B
+
+␤
+
+1–␥
+
+C
+
+␥
+
+576
+
+Part III
+
+Principles in Practice
+
+as follows:
+
+Maximize
+
+t¯
+
+
+ri Sit − h i Iit
+
+(16.56)
+
+t=1
+
+Subject to:
+d it ≤ Sit ≤ d̄it
+
+for all i, t
+
+(16.57)
+
+m
+
+ai j X it
+
+for all j, t
+
+(16.58)
+
+Iit = Iit−1 + X it − Sit
+
+for all i, t
+
+(16.59)
+
+X it , Sit , Iit ≥ 0
+
+for all i, t
+
+(16.60)
+
+i=1
+
+yi j
+
+≤ c jt
+
+As one would expect, the net effect of this change is to reduce the effective capacity
+of workstations, particularly those at the beginning of the line. By altering the yi j values
+(or better yet, the individual yields that make up the yi j values), the planner can get a
+feel for the sensitivity of the system to improvements in yields. Again as one would
+intuitively expect, the impact of reducing the scrap rate toward the end of the line is
+frequently much larger than that of reducing scrap toward the beginning of the line.
+Obviously, scrapping product late in the process is very costly and should be avoided
+wherever possible. If better process control and quality assurance in the front of the line
+can reduce scrap later, this is probably a sound policy. An aggregate planning module
+like that given in LP (16.56)–(16.60) is one way to get a sense of the economic and
+logistic impact of such a policy.
+
+16.4
+
+Workforce Planning
+In systems where the workload is subject to variation, because of either a changing
+workforce size or overtime load, it may make sense to consider the aggregate planning
+(AP) and workforce planning (WP) modules in tandem. Questions of how and when to
+resize the labor pool or whether to use overtime instead of workforce additions can be
+posed in the context of a linear programming formulation to support both modules.
+
+16.4.1
+
+An LP Model
+To illustrate how an LP model can help address the workforce-resizing and overtime
+allocation questions, we will consider a simple single-product model. In systems where
+product routings and processing times are either almost identical, so that products can
+be aggregated into a single product, or entirely separate, so that routings can be analyzed
+separately, the single-product model can be reasonable. In a system where bottleneck
+identiﬁcation is complicated by different processing times and interconnected routings, a
+planner would most likely need an explicit multiproduct model. This involves a straightforward integration of a product mix model, like those we discussed earlier, with a
+workforce-planning model like that presented next.
+
+Chapter 16
+
+Aggregate and Workforce Planning
+
+577
+
+We introduce the following notation, paralleling that which we have used up to now,
+with a few additions to address the workforce issues.
+j = an index of workstation, j = 1, . . . , n, so n represents total
+number of workstations
+t = an index of period, t = 1, . . . , t¯, so t¯ represents planning horizon
+d̄t = maximum demand in period t
+d t = minimum sales allowed in period t
+a j = time required on workstation j to produce one unit of product
+b = number of worker-hours required to produce one unit of product
+c jt = capacity of workstation j in period t
+r = net proﬁt per unit of product sold
+h = cost to hold one unit of product for one period
+l = cost of regular time in dollars per worker-hour
+l  = cost of overtime in dollars per worker-hour
+e = cost to increase workforce by one worker-hour per period
+e = cost to decrease workforce by one worker-hour per period
+X t = amount produced in period t
+St = amount sold in period t
+It = inventory at end of t (I0 is given as data)
+Wt = workforce in period t in worker-hours of regular time
+(W0 is given as data)
+Ht = increase (hires) in workforce from period t − 1 to t in worker-hours
+Ft = decrease (ﬁres) in workforce from period t − 1 to t in worker-hours
+Ot = overtime in period t in hours
+We now have several new parameters and decision variables for representing the
+workforce considerations. First, we need b, the labor content of one unit of product, in
+order to relate workforce requirements to production needs. Once the model has used this
+parameter to determine the number of labor hours required in a given month, it has two
+options for meeting this requirement. Either it can schedule overtime, using the variable
+Ot and incurring cost at rate lt , or it can resize the workforce, using variables Ht and Ft
+and incurring a cost of e (e ) for every worker added (laid off).
+To model this planning problem as an LP, we will need to make the assumption that
+the cost of worker additions or deletions is linear in the number of workers added or
+deleted; that is, it costs twice as much to add (delete) two workers as it does to add (delete)
+one. Here we are assuming that e is an estimate of the hiring, training, outﬁtting, and lost
+productivity costs associated with bringing on a new worker. Similarly, e represents the
+severance pay, unemployment costs, and so on associated with letting a worker go.
+Of course, in reality, these workforce-related costs may not be linear. The training
+cost per worker may be less for a group than for an individual, since a single instructor
+can train many workers for roughly the same cost as a single one. On the other hand,
+the plant disruption and productivity falloff from introducing many new workers may
+be much more severe than those from introducing a single worker. Although one can
+use more sophisticated models to consider such sources of nonlinearity, we will stick
+
+578
+
+Part III
+
+Principles in Practice
+
+with an LP model, keeping in mind that we are capturing general effects rather than
+elaborate details. Given that the AP and WP modules are used for long-term general
+planning purposes and rely on speculative forecasted data (e.g., of future demand), this
+is probably a reasonable choice for most applications.
+We can write the LP formulation of the problem to maximize net proﬁt, including labor, overtime, holding, and hiring/ﬁring costs, subject to constraints on sales and
+capacity, as
+Maximize
+
+t¯
+
+{r St − h It − lWt − l  Ot − eHt − e Ft }
+
+(16.61)
+
+d t ≤ St ≤ d̄t
+
+for all t
+
+(16.62)
+
+a j X t ≤ c jt
+
+for all j, t
+
+(16.63)
+
+It = It−1 + X t − St
+
+for all t
+
+(16.64)
+
+Wt = Wt−1 + Ht − Ft
+
+for all t
+
+(16.65)
+
+bX t ≤ Wt + Ot
+
+for all t
+
+(16.66)
+
+X t , St , It , Ot , Wt , Ht , Ft ≥ 0
+
+for all t
+
+(16.67)
+
+t=1
+
+Subject to:
+
+The objective function in formulation (16.61) computes proﬁt as the difference
+between net revenue and inventory carrying costs, wages (regular and overtime), and
+workforce increase/decrease costs. Constraints (16.62) are the usual bounds on sales.
+Constraints (16.63) are capacity constraints for each workstation. Constraints (16.64)
+are the usual inventory balance equations. Constraints (16.65) and (16.66) are new to this
+formulation. Constraints (16.65) deﬁne the variables Wt , t = 1, . . . , t¯, to represent the
+size of the workforce in period t in units of worker-hours. Constraints (16.66) constrain
+the worker-hours required to produce X t , given by bX t , to be less than or equal to the sum
+of regular time plus overtime, namely, Wt + Ot . Finally, constraints (16.67) ensure that
+production, sales, inventory, overtime, workforce size, and labor increases/decreases are
+all non-negative. The fact that It ≥ 0 implies no backlogging, but we could easily modify
+this model to account for backlogging in a manner like that used in LP(16.41)–(16.46).
+
+16.4.2
+
+A Combined AP/WP Example
+To make LP (16.61)–(16.67) concrete and to give a ﬂavor for the manner in which
+modeling, analysis, and decision making interact, we consider the example presented
+in the spreadsheet of Figure 16.10. This represents an AP problem for a single product
+with unit net revenue of $1,000 over a 12-month planning horizon. We assume that each
+worker works 168 hours per month and that there are 15 workers in the system at the
+beginning of the planning horizon. Hence, the total number of labor hours available at
+the start of the problem is
+W0 = 15 × 168 = 2,520
+There is no inventory in the system at the start, so I0 = 0.
+The cost parameters are estimated as follows. Monthly holding cost is $10 per unit.
+Regular-time labor (with beneﬁts) costs $35 per hour. Overtime is paid at time-and-a-half,
+
+Chapter 16
+
+579
+
+Aggregate and Workforce Planning
+
+Figure 16.10 Initial spreadsheet for workforce planning example.
+A
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63
+
+B
+
+C
+
+D
+
+E
+
+F
+
+G
+
+H
+
+I
+
+J
+
+K
+
+L
+
+M
+
+Parameters:
+r
+h
+l
+l′
+e
+e′
+b
+l_0
+W_0
+t
+d_t
+
+1000
+10
+35
+52.5
+15
+9
+12
+0
+2520
+1
+200
+
+2
+220
+
+3
+230
+
+4
+300
+
+5
+400
+
+6
+450
+
+7
+320
+
+8
+180
+
+9
+170
+
+10
+170
+
+11
+160
+
+12
+180
+
+Decision Variables:
+t
+Xt
+Wt
+Ht
+Ft
+It
+Ot
+
+1
+0.00
+0.00
+0.00
+0.00
+0.00
+0.00
+
+2
+0.00
+0.00
+0.00
+0.00
+0.00
+0.00
+
+3
+0.00
+0.00
+0.00
+0.00
+0.00
+0.00
+
+4
+0.00
+0.00
+0.00
+0.00
+0.00
+0.00
+
+5
+0.00
+0.00
+0.00
+0.00
+0.00
+0.00
+
+6
+0.00
+0.00
+0.00
+0.00
+0.00
+0.00
+
+7
+0.00
+0.00
+0.00
+0.00
+0.00
+0.00
+
+8
+0.00
+0.00
+0.00
+0.00
+0.00
+0.00
+
+9
+0.00
+0.00
+0.00
+0.00
+0.00
+0.00
+
+10
+0.00
+0.00
+0.00
+0.00
+0.00
+0.00
+
+11
+0.00
+0.00
+0.00
+0.00
+0.00
+0.00
+
+12
+0.00
+0.00
+0.00
+0.00
+0.00
+0.00
+
+Objective:
+Profit:
+Constraints:
+I1-I0-X1
+I2-I1-X2
+I3-I2-X3
+I4-I3-X4
+I5-I4-X5
+I6-I5-X6
+I7-I6-X7
+I8-I7-X8
+I9-I8-X9
+I10-I9-X10
+I11-I10-X11
+I12-I11-X12
+W1-W0-H1+F1
+W2-W1-H2+F2
+W3-W2-H3+F3
+W4-W3-H4+F4
+W5-W4-H5+F5
+W6-W5-H6+F6
+W7-W6-H7+F7
+W8-W7-H8+F8
+W9-W8-H9+F9
+W10-W9-H10+F10
+W11-W10-H11+F11
+W12-W11-H12+F12
+bX1-W1-O1
+bX2-W2-O2
+bX3-W3-O3
+bX4-W4-O4
+bX5-W5-O5
+bX6-W6-O6
+bX7-W7-O7
+bX8-W8-O8
+bX9-W9-O9
+bX10-W10-O10
+bX11-W11-O11
+bX12-W12-O12
+
+$2,980,600.00
+
+=
+-d_1
+0.00
+-200
+=
+-d_2
+0.00
+-220
+=
+-d_3
+0.00
+-230
+=
+-d_4
+0.00
+-300
+=
+-d_5
+0.00
+-400
+=
+-d_6
+0.00
+-450
+=
+-d_7
+0.00
+-320
+=
+-d_8
+0.00
+-180
+=
+-d_9
+0.00
+-170
+=
+-d_10
+0.00
+-170
+=
+-d_11
+0.00
+-160
+=
+-d_12
+0.00
+-180
+=
+-2520.00
+0
+=
+0.00
+0
+=
+0.00
+0
+=
+0.00
+0
+=
+0.00
+0
+=
+0.00
+0
+=
+0.00
+0
+=
+0.00
+0
+=
+0.00
+0
+=
+0.00
+0
+=
+0.00
+0
+=
+0.00
+0
+<=
+0.00
+0
+<=
+0.00
+0
+<=
+0.00
+0
+<=
+0.00
+0
+<=
+0.00
+0
+<=
+0.00
+0
+<=
+0.00
+0
+<=
+0.00
+0
+<=
+0.00
+0
+<=
+0.00
+0
+<=
+0.00
+0
+<=
+0.00
+0
+Note: All decision variables must be >= 0
+
+580
+
+Part III
+
+Principles in Practice
+
+which is equal to $52.50 per hour. It costs roughly $2,500 to hire and train a new worker.
+Since this worker will account for 168 hours per month, the cost in terms of dollars per
+worker-hour is
+$2,500
+= $14.88 ≈ $15 per hour
+168
+Since this number is only a rough approximation, we will round to an even $15. Similarly,
+we estimate the cost to lay off a worker to be about $1,500, so the cost per hour of reduction
+in the monthly workforce is
+$1,500
+= $8.93 ≈ $9 per hour
+168
+Again, we will use the rounded value of $9, since data are rough.
+Notice that the projected demands (dt ) in the spreadsheet have a seasonal pattern to
+them, building to a peak in months 5 and 6, and tapering off thereafter. We will assume
+that backordering is not an option and that demands must be met, so the main issue will
+be how to do this.
+Let us begin by expressing LP (16.61)–(16.67) in concrete terms for this problem.
+Because we are assuming that demands are met, we set St = dt , which eliminates the
+need for separate sales variables St and sales constraints (16.62). Furthermore, to keep
+things simple, we will assume that the only capacity constraints are those posed by labor
+(i.e., it requires 12 hours of labor to produce each unit of product). No other machine or
+resource constraints need be considered. Thus we can omit constraints (16.63). Under
+these assumptions, the resulting LP formulation is
+Maximize
+
+1,000(d1 + · · · + d12 ) − 10(I1 + · · · + I12 )
+−35(W1 + · · · + W12 ) − 52.5(O1 + · · · + O12 )
+−15(H1 + · · · + H12 ) − 9(F1 + · · · + F12 )
+
+(16.68)
+
+Subject to:
+I1 − I0 − X 1 = −d1
+
+(16.69)
+
+I2 − I1 − X 2 = −d2
+
+(16.70)
+
+I3 − I2 − X 3 = −d3
+
+(16.71)
+
+I4 − I3 − X 4 = −d4
+
+(16.72)
+
+I5 − I4 − X 5 = −d5
+
+(16.73)
+
+I6 − I5 − X 6 = −d6
+
+(16.74)
+
+I7 − I6 − X 7 = −d7
+
+(16.75)
+
+I8 − I7 − X 8 = −d8
+
+(16.76)
+
+I9 − I8 − X 9 = −d9
+
+(16.77)
+
+I10 − I9 − X 10 = −d10
+
+(16.78)
+
+I11 − I10 − X 11 = −d11
+
+(16.79)
+
+I12 − I11 − X 12 = −d12
+
+(16.80)
+
+Chapter 16
+
+581
+
+Aggregate and Workforce Planning
+
+W1 − H1 + F1 = 2,520
+
+(16.81)
+
+W2 − W1 − H2 + F2 = 0
+
+(16.82)
+
+W3 − W2 − H3 + F3 = 0
+
+(16.83)
+
+W4 − W3 − H4 + F4 = 0
+
+(16.84)
+
+W5 − W4 − H5 + F5 = 0
+
+(16.85)
+
+W6 − W5 − H6 + F6 = 0
+
+(16.86)
+
+W7 − W6 − H7 + F7 = 0
+
+(16.87)
+
+W8 − W7 − H8 + F8 = 0
+
+(16.88)
+
+W9 − W8 − H9 + F9 = 0
+
+(16.89)
+
+W10 − W9 − H10 + F10 = 0
+
+(16.90)
+
+W11 − W10 − H11 + F11 = 0
+
+(16.91)
+
+W12 − W11 − H12 + F12 = 0
+
+(16.92)
+
+12X 1 − W1 − O1 ≤ 0
+
+(16.93)
+
+12X 2 − W2 − O2 ≤ 0
+
+(16.94)
+
+12X 3 − W3 − O3 ≤ 0
+
+(16.95)
+
+12X 4 − W4 − O4 ≤ 0
+
+(16.96)
+
+12X 5 − W5 − O5 ≤ 0
+
+(16.97)
+
+12X 6 − W6 − O6 ≤ 0
+
+(16.98)
+
+12X 7 − W7 − O7 ≤ 0
+
+(16.99)
+
+12X 8 − W8 − O8 ≤ 0
+
+(16.100)
+
+12X 9 − W9 − O9 ≤ 0
+
+(16.101)
+
+12X 10 − W10 − O10 ≤ 0
+
+(16.102)
+
+12X 11 − W11 − O11 ≤ 0
+
+(16.103)
+
+12X 12 − W12 − O12 ≤ 0
+
+(16.104)
+
+X t , It , Ot , Wt , Ht , Ft ≥ 0
+
+t = 1, . . . , 12
+
+(16.105)
+
+Objective (16.68) is identical to objective (16.61), except that the St variables have
+been replaced with dt constants.8 Constraints (16.69)–(16.80) are the usual balance
+constraints. For instance, constraint (16.69) simply states that
+I1 = I0 + X 1 − d1
+That is, inventory at the end of month 1 equals inventory at the end of month 0 (i.e.,
+the beginning of the problem) plus production during month 1, minus sales (demand)
+in month 1. We have arranged these constraints so that all decision variables are on the
+8 Since the d values are ﬁxed, the ﬁrst term in the objective function is not a function of our decision
+t
+
+variables and could be left out without affecting the solution. We have kept it in so that our model reports a
+sensible proﬁt function.
+
+582
+
+Part III
+
+Principles in Practice
+
+left-hand side of the equality and constants (dt ) are on the right-hand side. This is often
+a convenient modeling convention, as we will see in our analysis.
+Constraints (16.81) to (16.92) are the labor balance equations given in constraints
+(16.65) of our general formulation. For instance, constraint (16.81) represents the relation
+W1 = W0 + H1 − F1
+so that the workforce at the end of month 1 (in units of worker-hours) is equal to the
+workforce at the end of month 0, plus any additions in month 1, minus any subtractions
+in month 1.
+Constraints (16.93) to (16.104) ensure that the labor content of the production plan
+does not exceed available labor, which can include overtime. For instance, constraint
+(16.93) can be written as
+12X 1 ≤ W1 + O1
+In the spreadsheet shown in Figure 16.10, we have entered the decision variables
+X t , Wt , Ht , Ft , It , and Ot into cells B16:M21. Using these variables and the various
+coefﬁcients from the top of the spreadsheet, we express objective (16.68) as a formula
+in cell B24. Notice that this formula reports a value equal to the unit proﬁt times total
+demand, or
+1,000(200 + 220 + 230 + 300 + 400 + 450 + 320
++ 180 + 170 + 170 + 160 + 180) = $2,980,000
+because all other terms in the objective are zero when the decision variables are set at
+zero.
+We enter formulas for the left-hand sides of constraints (16.69) to (16.80) in cells
+B27:B38, the left-hand sides of constraints (16.81) to (16.92) in cells B39:B50, and the
+left-hand sides of constraints (16.93) to (16.104) in cells B51:B62. Notice that many of
+these constraints are not satisﬁed when all decision variables are equal to zero. This is
+hardly surprising, since we cannot expect to earn revenues from sales of product we have
+not made.
+A convenient aspect of using a spreadsheet for solving LP models is that it provides
+us with a mechanism for playing with the model to gain insight into its behavior. For
+instance, in the spreadsheet of Figure 16.11 we try a chase solution where we set
+production equal to demand (X t = dt ) and leave Wt = W0 in every period. Although this
+satisﬁes the inventory balance constraints in cells B27:B38, and the workforce balance
+constraints in cells B39:B50, it violates the labor content constraints in cells B52:B57.
+The reason, of course, is that the current workforce is not sufﬁcient to meet demand
+without using overtime. We could try adding overtime by adjusting the Ot variables
+in cells B21:M21. However, searching around for an optimal solution can be difﬁcult,
+particularly in large models. Therefore, we will let the LP solver in the software do the
+work for us.
+Using the procedure we described earlier, we specify constraints (16.69) to (16.105)
+in our model and turn it loose. The result is the spreadsheet in Figure 16.12. Based on
+the costs we chose, it turns out to be optimal not to use any overtime. (Overtime costs
+$52.5 − 35 = 15.50 per hour each month, while hiring a new worker costs only $15 per
+
+Chapter 16
+
+583
+
+Aggregate and Workforce Planning
+
+Figure 16.11 Infeasible “chase” solution.
+A
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63
+
+Parameters:
+r
+h
+l
+l′
+e
+e′
+b
+l_0
+W_0
+t
+d_t
+Decision Variables:
+t
+Xt
+Wt
+Ht
+Ft
+It
+Ot
+Objective:
+Profit:
+Constraints:
+I1-I0-X1
+I2-I1-X2
+I3-I2-X3
+I4-I3-X4
+I5-I4-X5
+I6-I5-X6
+I7-I6-X7
+I8-I7-X8
+I9-I8-X9
+I10-I9-X10
+I11-I10-X11
+I12-I11-X12
+W1-W0-H1+F1
+W2-W1-H2+F2
+W3-W2-H3+F3
+W4-W3-H4+F4
+W5-W4-H5+F5
+W6-W5-H6+F6
+W7-W6-H7+F7
+W8-W7-H8+F8
+W9-W8-H9+F9
+W10-W9-H10+F10
+W11-W10-H11+F11
+W12-W11-H12+F12
+bX1-W1-O1
+bX2-W2-O2
+bX3-W3-O3
+bX4-W4-O4
+bX5-W5-O5
+bX6-W6-O6
+bX7-W7-O7
+bX8-W8-O8
+bX9-W9-O9
+bX10-W10-O10
+bX11-W11-O11
+bX12-W12-O12
+
+B
+
+C
+
+D
+
+E
+
+F
+
+G
+
+H
+
+I
+
+J
+
+K
+
+L
+
+M
+
+1000
+10
+35
+52.5
+15
+9
+12
+0
+2520
+1
+200
+
+2
+220
+
+3
+230
+
+4
+300
+
+5
+400
+
+6
+450
+
+7
+320
+
+8
+180
+
+9
+170
+
+10
+170
+
+11
+160
+
+12
+180
+
+1
+200.00
+2520.00
+0.00
+0.00
+0.00
+10.00
+
+2
+220.00
+2520.00
+0.00
+0.00
+0.00
+0.00
+
+3
+230.00
+2520.00
+0.00
+0.00
+0.00
+0.00
+
+4
+300.00
+2520.00
+0.00
+0.00
+0.00
+0.00
+
+5
+400.00
+2520.00
+0.00
+0.00
+0.00
+0.00
+
+6
+450.00
+2520.00
+0.00
+0.00
+0.00
+0.00
+
+7
+320.00
+2520.00
+0.00
+0.00
+0.00
+0.00
+
+8
+180.00
+2520.00
+0.00
+0.00
+0.00
+0.00
+
+9
+170.00
+2520.00
+0.00
+0.00
+0.00
+0.00
+
+10
+170.00
+2520.00
+0.00
+0.00
+0.00
+0.00
+
+11
+160.00
+2520.00
+0.00
+0.00
+0.00
+0.00
+
+12
+180.00
+2520.00
+0.00
+0.00
+0.00
+0.00
+
+$1,921,600.00
+
+=
+-d_1
+-200.00
+-200
+=
+-d_2
+-220.00
+-220
+=
+-d_3
+-230.00
+-230
+=
+-d_4
+-300.00
+-300
+=
+-d_5
+-400.00
+-400
+=
+-d_6
+-450.00
+-450
+=
+-d_7
+-320.00
+-320
+=
+-d_8
+-180.00
+-180
+=
+-d_9
+-170.00
+-170
+=
+-d_10
+-170.00
+-170
+=
+-d_11
+-160.00
+-160
+=
+-d_12
+-180.00
+-180
+=
+0.00
+0
+=
+0.00
+0
+=
+0.00
+0
+=
+0.00
+0
+=
+0.00
+0
+=
+0.00
+0
+=
+0.00
+0
+=
+0.00
+0
+=
+0
+0.00
+=
+0
+0.00
+=
+0
+0.00
+=
+0
+0.00
+<=
+0
+-120.00
+<=
+0
+120.00
+<=
+0
+240.00
+<=
+0
+1080.00
+<=
+0
+2280.00
+<=
+0
+2880.00
+<=
+0
+1320.00
+<=
+0
+-360.00
+<=
+0
+-480.00
+<=
+0
+-480.00
+<=
+0
+-600.00
+<=
+0
+-360.00
+Note: All decision variables must be >= 0
+
+584
+
+Part III
+
+Principles in Practice
+
+Figure 16.12 LP optimal solution.
+A
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63
+
+Parameters:
+r
+h
+l
+l′
+e
+e′
+b
+l_0
+W_0
+t
+d_t
+Decision Variables:
+t
+Xt
+Wt
+Ht
+Ft
+It
+Ot
+Objective:
+Profit:
+Constraints:
+I1-I0-X1
+I2-I1-X2
+I3-I2-X3
+I4-I3-X4
+I5-I4-X5
+I6-I5-X6
+I7-I6-X7
+I8-I7-X8
+I9-I8-X9
+I10-I9-X10
+I11-I10-X11
+I12-I11-X12
+W1-W0-H1+F1
+W2-W1-H2+F2
+W3-W2-H3+F3
+W4-W3-H4+F4
+W5-W4-H5+F5
+W6-W5-H6+F6
+W7-W6-H7+F7
+W8-W7-H8+F8
+W9-W8-H9+F9
+W10-W9-H10+F10
+W11-W10-H11+F11
+W12-W11-H12+F12
+bX1-W1-O1
+bX2-W2-O2
+bX3-W3-O3
+bX4-W4-O4
+bX5-W5-O5
+bX6-W6-O6
+bX7-W7-O7
+bX8-W8-O8
+bX9-W9-O9
+bX10-W10-O10
+bX11-W11-O11
+bX12-W12-O12
+
+B
+
+C
+
+D
+
+E
+
+F
+
+G
+
+H
+
+I
+
+J
+
+K
+
+L
+
+M
+
+1000
+10
+35
+52.5
+15
+9
+12
+0
+2520
+1
+200
+
+2
+220
+
+3
+230
+
+4
+300
+
+5
+400
+
+6
+450
+
+7
+320
+
+8
+180
+
+9
+170
+
+10
+170
+
+11
+160
+
+12
+180
+
+1
+302.86
+3634.29
+1114.29
+0.00
+102.86
+0.00
+
+2
+302.86
+3634.29
+0.00
+0.00
+185.71
+0.00
+
+3
+302.86
+3634.29
+0.00
+0.00
+258.57
+0.00
+
+4
+302.86
+3634.29
+0.00
+0.00
+261.43
+0.00
+
+5
+302.86
+3634.29
+0.00
+0.00
+164.29
+0.00
+
+6
+302.86
+3634.29
+0.00
+0.00
+17.14
+0.00
+
+7
+302.86
+3634.29
+0.00
+0.00
+0.00
+0.00
+
+8
+180.00
+2160.00
+0.00
+1474.29
+0.00
+0.00
+
+9
+170.00
+2040.00
+0.00
+120.00
+0.00
+0.00
+
+10
+170.00
+2040.00
+0.00
+0.00
+0.00
+0.00
+
+11
+170.00
+2040.00
+0.00
+0.00
+10.00
+0.00
+
+12
+170.00
+2040.00
+0.00
+0.00
+0.00
+0.00
+
+$1,687,337.14
+
+=
+-d_1
+-200.00
+-200
+=
+-d_2
+-220.00
+-220
+=
+-d_3
+-230.00
+-230
+=
+-d_4
+-300.00
+-300
+=
+-d_5
+-400.00
+-400
+=
+-d_6
+-450.00
+-450
+=
+-d_7
+-320.00
+-320
+=
+-d_8
+-180.00
+-180
+=
+-d_9
+-170.00
+-170
+=
+-d_10
+-170.00
+-170
+=
+-d_11
+-160.00
+-160
+=
+-d_12
+-180.00
+-180
+=
+0.00
+0
+=
+0.00
+0
+=
+0.00
+0
+=
+0.00
+0
+=
+0.00
+0
+=
+0.00
+0
+=
+0.00
+0
+=
+0.00
+0
+=
+0.00
+0
+=
+0.00
+0
+=
+0.00
+0
+=
+0.00
+0
+<=
+0.00
+0
+<=
+0
+0.00
+<=
+0
+0.00
+<=
+0
+0.00
+<=
+0
+0.00
+<=
+0
+0.00
+<=
+0
+0.00
+<=
+0
+0.00
+<=
+0
+0.00
+<=
+0
+0.00
+<=
+0
+0.00
+<=
+0
+0.00
+Note: All decision variables must be >= 0
+
+Chapter 16
+
+585
+
+Aggregate and Workforce Planning
+
+hour as a one-time cost.) Instead, the model adds 1,114.29 hours to the workforce, which
+represents
+1,114.29
+= 6.6
+168
+new workers. After the peak season of months 4 to 7, the solution calls for a reduction
+of 1,474.29 + 120 = 1,594.29 hours, which implies laying off
+1,594.29
+= 9.5
+168
+workers. Additionally, the solution involves building in excess of demand in months 1 to
+4 and using this inventory to meet peak demand in months 5 to 7. The net proﬁt resulting
+from this solution is $1,687,337.14.
+From a management standpoint, the planned layoffs in months 8 and 9 might be
+a problem. Although we have speciﬁed penalties for these layoffs, these penalties are
+highly speculative and may not accurately consider the long-term effects of hiring and
+ﬁring on worker morale, productivity, and the ﬁrm’s ability to recruit good people. Thus,
+it is worthwhile to carry our analysis further.
+One approach we might consider would be to allow the model to hire but not ﬁre
+workers. We can easily do this by eliminating the Ft variables or, since this requires
+fairly extensive changes in the spreadsheet, specifying additional constraints of the form
+Ft = 0
+
+t = 1, . . . , 12
+
+Rerunning the model with these additional constraints produces the spreadsheet in Figure
+16.13. As we expect, this solution does not include any layoffs. Somewhat surprising,
+however, is the fact that it does not involve any new hires either (that is, Ht = 0 for every
+period). Instead of increasing the workforce size, the model has chosen to use overtime in
+months 3 to 7. Evidently, if we cannot ﬁre workers, it is uneconomical to hire additional
+people.
+However, when one looks more closely at the solution in Figure 16.13, a problem
+becomes evident. Overtime is too high. For instance, month 6 has more hours of overtime
+than hours of regular time! This means that our workforce of 15 people has 2,880/15
+= 192 hours of overtime in the month, or about 48 hours per week per worker. This is
+obviously excessive.
+One way to eliminate this overtime problem is to add some more constraints. For
+instance, we might specify that overtime is not to exceed 20 percent of regular time.
+This would correspond to the entire workforce working an average of one full day of
+overtime per week in addition to the normal 5-day workweek. We could do this by adding
+constraints of the form
+Ot ≤ 0.2Wt
+
+t = 1, . . . , 12
+
+(16.106)
+
+doing this to the spreadsheet of Figure 16.13 and resolving results in the spreadsheet
+shown in Figure 16.14. The overtime limits have forced the model to resort to hiring.
+Since layoffs are still not allowed, the model hires only 508.57 hours worth of workers, or
+508.57
+=3
+168
+new workers, as opposed to the 6.6 workers hired in the original solution in Figure
+16.12. To attain the necessary production, the solution uses overtime in months 1 to 7.
+
+586
+
+Part III
+
+Principles in Practice
+
+Figure 16.13 Optimal solution when Ft = 0.
+A
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63
+
+Parameters:
+r
+h
+l
+l′
+e
+e′
+b
+l_0
+W_0
+t
+d_t
+Decision Variables:
+t
+Xt
+Wt
+Ht
+Ft
+It
+Ot
+Objective:
+Profit:
+Constraints:
+I1-I0-X1
+I2-I1-X2
+I3-I2-X3
+I4-I3-X4
+I5-I4-X5
+I6-I5-X6
+I7-I6-X7
+I8-I7-X8
+I9-I8-X9
+I10-I9-X10
+I11-I10-X11
+I12-I11-X12
+W1-W0-H1+F1
+W2-W1-H2+F2
+W3-W2-H3+F3
+W4-W3-H4+F4
+W5-W4-H5+F5
+W6-W5-H6+F6
+W7-W6-H7+F7
+W8-W7-H8+F8
+W9-W8-H9+F9
+W10-W9-H10+F10
+W11-W10-H11+F11
+W12-W11-H12+F12
+bX1-W1-O1
+bX2-W2-O2
+bX3-W3-O3
+bX4-W4-O4
+bX5-W5-O5
+bX6-W6-O6
+bX7-W7-O7
+bX8-W8-O8
+bX9-W9-O9
+bX10-W10-O10
+bX11-W11-O11
+bX12-W12-O12
+
+B
+
+C
+
+D
+
+E
+
+F
+
+G
+
+H
+
+I
+
+J
+
+K
+
+L
+
+M
+
+1000
+10
+35
+52.5
+15
+9
+12
+0
+2520
+1
+200
+
+2
+220
+
+3
+230
+
+4
+300
+
+5
+400
+
+6
+450
+
+7
+320
+
+8
+180
+
+9
+170
+
+10
+170
+
+11
+160
+
+12
+180
+
+1
+210.00
+2520.00
+0.00
+0.00
+10.00
+0.00
+
+2
+210.00
+2520.00
+0.00
+0.00
+0.00
+0.00
+
+3
+230.00
+2520.00
+0.00
+0.00
+0.00
+240.00
+
+4
+300.00
+2520.00
+0.00
+0.00
+0.00
+1080.00
+
+5
+400.00
+2520.00
+0.00
+0.00
+0.00
+2280.00
+
+6
+450.00
+2520.00
+0.00
+0.00
+0.00
+2880.00
+
+7
+320.00
+2520.00
+0.00
+0.00
+0.00
+1320.00
+
+8
+180.00
+2520.00
+0.00
+0.00
+0.00
+0.00
+
+9
+170.00
+2520.00
+0.00
+0.00
+0.00
+0.00
+
+10
+170.00
+2520.00
+0.00
+0.00
+0.00
+0.00
+
+11
+160.00
+2520.00
+0.00
+0.00
+0.00
+0.00
+
+12
+180.00
+2520.00
+0.00
+0.00
+0.00
+0.00
+
+$1,512,000.00
+
+=
+-d_1
+-200.00
+-200
+=
+-d_2
+-220.00
+-220
+=
+-d_3
+-230.00
+-230
+=
+-d_4
+-300.00
+-300
+=
+-d_5
+-400.00
+-400
+=
+-d_6
+-450.00
+-450
+=
+-d_7
+-320.00
+-320
+=
+-d_8
+-180.00
+-180
+=
+-d_9
+-170.00
+-170
+=
+-d_10
+-170.00
+-170
+=
+-d_11
+-160.00
+-160
+=
+-d_12
+-180.00
+-180
+=
+0.00
+0
+=
+0.00
+0
+=
+0.00
+0
+=
+0.00
+0
+=
+0.00
+0
+=
+0.00
+0
+=
+0.00
+0
+=
+0.00
+0
+=
+0.00
+0
+=
+0
+0.00
+=
+0
+0.00
+=
+0
+0.00
+<=
+0
+0.00
+<=
+0
+0.00
+<=
+0
+0.00
+<=
+0
+0.00
+<=
+0
+0.00
+<=
+0
+0.00
+<=
+0
+0.00
+<=
+0
+-360.00
+<=
+0
+-480.00
+<=
+0
+-480.00
+<=
+0
+-600.00
+<=
+0
+-360.00
+Note: All decision variables must be >= 0
+
+Chapter 16
+
+587
+
+Aggregate and Workforce Planning
+
+Figure 16.14 Optimal solution when Ft = 0 and Ot ≤ 0.2Wt .
+A
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63
+
+Parameters:
+r
+h
+l
+l′
+e
+e′
+b
+l_0
+W_0
+t
+d_t
+Decision Variables:
+t
+Xt
+Wt
+Ht
+Ft
+It
+Ot
+Objective:
+Profit:
+Constraints:
+I1-I0-X1
+I2-I1-X2
+I3-I2-X3
+I4-I3-X4
+I5-I4-X5
+I6-I5-X6
+I7-I6-X7
+I8-I7-X8
+I9-I8-X9
+I10-I9-X10
+I11-I10-X11
+I12-I11-X12
+W1-W0-H1+F1
+W2-W1-H2+F2
+W3-W2-H3+F3
+W4-W3-H4+F4
+W5-W4-H5+F5
+W6-W5-H6+F6
+W7-W6-H7+F7
+W8-W7-H8+F8
+W9-W8-H9+F9
+W10-W9-H10+F10
+W11-W10-H11+F11
+W12-W11-H12+F12
+bX1-W1-O1
+bX2-W2-O2
+bX3-W3-O3
+bX4-W4-O4
+bX5-W5-O5
+bX6-W6-O6
+bX7-W7-O7
+bX8-W8-O8
+bX9-W9-O9
+bX10-W10-O10
+bX11-W11-O11
+bX12-W12-O12
+
+B
+
+C
+
+D
+
+E
+
+F
+
+G
+
+H
+
+I
+
+J
+
+K
+
+L
+
+M
+
+1000
+10
+35
+52.5
+15
+9
+12
+0
+2520
+1
+200
+
+2
+220
+
+3
+230
+
+4
+300
+
+5
+400
+
+6
+450
+
+7
+320
+
+8
+180
+
+9
+170
+
+10
+170
+
+11
+160
+
+12
+180
+
+1
+302.86
+3028.57
+508.57
+0.00
+102.86
+605.71
+
+2
+302.86
+3028.57
+0.00
+0.00
+185.71
+605.71
+
+3
+302.86
+3028.57
+0.00
+0.00
+258.57
+605.71
+
+4
+302.86
+3028.57
+0.00
+0.00
+261.43
+605.71
+
+5
+302.86
+3028.57
+0.00
+0.00
+164.29
+605.71
+
+6
+302.86
+3028.57
+0.00
+0.00
+17.14
+605.71
+
+7
+302.86
+3028.57
+0.00
+0.00
+0.00
+605.71
+
+8
+180.00
+3028.57
+0.00
+0.00
+0.00
+0.00
+
+9
+170.00
+3028.57
+0.00
+0.00
+0.00
+0.00
+
+10
+170.00
+3028.57
+0.00
+0.00
+0.00
+0.00
+
+11
+160.00
+3028.57
+0.00
+0.00
+0.00
+0.00
+
+12
+180.00
+3028.57
+0.00
+0.00
+0.00
+0.00
+
+$1,467,871.43
+
+=
+-d_1
+-200.00
+-200
+=
+-d_2
+-220.00
+-220
+=
+-d_3
+-230.00
+-230
+=
+-d_4
+-300.00
+-300
+=
+-d_5
+-400.00
+-400
+=
+-d_6
+-450.00
+-450
+=
+-d_7
+-320.00
+-320
+=
+-d_8
+-180.00
+-180
+=
+-d_9
+-170.00
+-170
+=
+-d_10
+-170.00
+-170
+=
+-d_11
+-160.00
+-160
+=
+-d_12
+-180.00
+-180
+=
+0.00
+0
+=
+0.00
+0
+=
+0.00
+0
+=
+0.00
+0
+=
+0.00
+0
+=
+0.00
+0
+=
+0.00
+0
+=
+0.00
+0
+=
+0.00
+0
+=
+0
+0.00
+=
+0
+0.00
+=
+0
+0.00
+<=
+0
+0.00
+<=
+0
+0.00
+<=
+0
+0.00
+<=
+0
+0.00
+<=
+0
+0.00
+<=
+0
+0.00
+<=
+0
+0.00
+<=
+0
+-868.57
+<=
+0
+-988.57
+<=
+0
+-988.57
+<=
+0
+-1108.57
+<=
+0
+-868.57
+Note: All decision variables must be >= 0
+
+588
+
+Part III
+
+Principles in Practice
+
+Notice that the amount of overtime used in these months is exactly 20 percent of regular
+time work hours, that is,
+3,028.57 × 0.2 = 605.71
+What this means is that new constraints (16.106) are binding for periods 1 to 7, which
+we would be told explicitly if we printed out the sensitivity analysis reports generated
+by the LP solver. This implies that if it is possible to work more overtime in any of these
+months, we can improve the solution.
+Notice that the net proﬁt in the model of the spreadsheet shown in Figure 16.14
+is $1,467,871.43, which is a 13 percent decrease over the original optimal solution
+of $1,687,337.14 in Figure 16.12. At ﬁrst glance, it may appear that the policies of
+no layoffs and limits on overtime are expensive. On the other hand, it may really be
+telling us that our original estimates of the costs of hiring and ﬁring were too low. If
+we were to increase these costs to represent, for example, long-term disruptions caused
+by labor changes, the optimal solution might be very much like the one arrived at in
+Figure 16.14.
+
+16.4.3
+
+Modeling Insights
+In addition to providing a detailed example of a workforce formulation in LP (16.61)–
+(16.67), we hope that our discussion has helped the reader appreciate the following
+aspects of using an optimization model as the basis for an AP or WP module.
+1. Multiple modeling approaches. There are often many ways to model a given
+problem, none of which is “correct” in any absolute sense. The key is to use
+cost coefﬁcients and constraints to represent the main issues in a sensible way.
+In this example, we could have generated solutions without layoffs by either
+increasing the layoff penalty or placing constraints on the layoffs. Both
+approaches would achieve the same qualitative conclusions.
+2. Iterative model development. Modeling and analysis almost never proceed in an
+ideal fashion in which the model is formulated, solved, and interpreted in a
+single pass. Often the solution from one version of the model suggests an
+alternate model. For instance, we had no way of knowing that eliminating
+layoffs would cause excessive overtime in the solution. We didn’t know we
+would need constraints on the level of overtime until we saw the spreadsheet
+output of Figure 16.13.
+
+16.5
+
+Conclusions
+In this chapter, we have given an overview of the issues involved in aggregate and workforce planning. A key observation behind our approach is that, because the aggregate
+planning and workforce planning modules use long time horizons, precise data and intricate modeling detail are impractical or impossible. We must recognize that the production
+or workforce plans that these modules generate will be adjusted as time evolves. The
+lower levels in the PPC hierarchy must handle the nuts-and-bolts challenge of converting
+the plans to action. The keys to a good AP module are to keep the focus on long-term
+planning (i.e., avoiding putting too many short-term control details in the model) and
+to provide links for consistency with other levels in the hierarchy. Some of the issues
+
+Chapter 16
+
+Aggregate and Workforce Planning
+
+589
+
+related to consistency were discussed in Chapter 13. Here, we close with some general
+observations about the aggregate and workforce planning functions.
+1. No single AP or WP module is right for every situation. As the examples in this
+chapter show, aggregate and workforce planning can incorporate many different
+decision problems. A good AP or WP module is one that is tailored to address
+the speciﬁc issues faced by the ﬁrm.
+2. Simplicity promotes understanding. Although it is desirable to address different
+issues in the AP/WP module, it is even more important to keep the model
+understandable. In general, these modules are used to generate candidate
+production and workforce plans, which will be examined, combined, and
+altered manually before being published as “The Plan.” To generate a spectrum
+of plans (and explain them to others), the user must be able to trace changes in
+the model to changes in the plan. Because of this, it makes sense to start with as
+simple a formulation as possible. Additional detail (e.g., constraints) can be
+added later.
+3. Linear programming is a useful AP/WP tool. The long planning horizon used
+for aggregate and workforce planning justiﬁes ignoring many production
+details; therefore, capacity checks, sales restrictions, and inventory balances can
+be expressed as linear constraints. As long as we are willing to approximate
+actual costs with linear functions, an LP solver is a very efﬁcient method for
+solving many problems related to the AP and WP modules. Because we are
+working with speculative long-range data, it generally does not make sense to
+use anything more sophisticated than LP (e.g., nonlinear or integer
+programming) in most aggregate and workforce planning situations.
+4. Robustness matters more than precision. No matter how accurate the data and
+how sophisticated the model, the plan generated by the AP or WP module will
+never be followed exactly. The actual production sequence will be affected by
+unforeseen events that could not possibly have been factored into the module.
+This means that the mark of a good long-range production plan is that it enables
+us to do a reasonably good job even in the face of such contingencies. To ﬁnd
+such a plan, the user of the AP module must be able to examine the
+consequences of various scenarios. This is another reason to keep the model
+reasonably simple.
+
+Appendix 16A
+Linear Programming
+Linear programming is a powerful mathematical tool for solving constrained optimization problems. The name derives from the fact that LP was ﬁrst applied to ﬁnd optimal schedules or
+“programs” of resource allocation. Hence, although LP generally does involve using a computer
+program, it does not entail programming on the part of the user in the sense of writing code.
+In this appendix, we provide enough background to give the user of an LP package a basic
+idea of what the software is doing. Readers interested in more details should consult one of the
+many good texts on the subject (e.g., Eppen, Gould, and Schmidt 1988 for an application-oriented
+overview, Murty 1983 for more technical coverage).
+
+Formulation
+The ﬁrst step in using linear programming is to formulate a practical problem in mathematical
+terms. There are three basic choices we must make to do this:
+1. Decision variables are quantities under our control. Typical examples for aggregate
+planning and workforce planning applications of LP are production quantities, number
+of workers to hire, and levels of inventory to hold.
+2. Objective function is what we want to maximize or minimize. In most AP/WP
+applications, this is typically either to maximize proﬁt or minimize cost. Beyond simply
+stating the objective, however, we must specify it in terms of the decision variables we
+have deﬁned.
+3. Constraints are restrictions on our choices of the decision variables. Typical examples
+for AP/WP applications include capacity constraints, raw materials limitations,
+restrictions on how fast we can add workers due to limitations on training capacity, and
+restrictions on physical ﬂow (e.g., inventory levels as a direct result of how much we
+produce/procure and how much we sell).
+When one is formulating an LP, it is often useful to try to specify the necessary inputs in the
+order in which they are listed. However, in realistic problems, one virtually never gets the “right”
+formulation in a single pass. The example in Section 16.4.2 illustrates some of the changes that
+may be required as a model evolves.
+To describe the process of formulating an LP, let us consider the problem presented in Table
+16.2. We begin by selecting decision variables. Since there are only two products and because
+demand and capacity are assumed stationary over time, the only decisions to make concern how
+much of each product to produce per week. Thus, we let X 1 and X 2 represent the weekly production
+quantities of products 1 and 2, respectively.
+Next, we choose to maximize proﬁt as our objective function. Since product 1 sells for $90
+but costs $45 in raw material, its net proﬁt is $45 per unit.9 Similarly, product 2 sells for $100 but
+costs $40 in raw material, so its net unit proﬁt is $60. Thus, weekly proﬁt will be
+45X 1 + 60X 2 − weekly labor costs − weekly overhead costs
+But since we assume that labor and overhead costs are not affected by the choice of X 1 and X 2 ,
+we can use the following as our objective function for the LP model:
+Maximize
+
+45X 1 + 60X 2
+
+Finally, we need to specify constraints. If we could produce as much of products 1 and 2 as we
+wanted, we could drive the above objective function, and hence weekly proﬁt, to inﬁnity. This is
+not possible because of limitations on demand and capacity.
+9 Note that we are neglecting labor and overhead costs in our estimates of unit proﬁt. This is reasonable if
+
+these costs are not affected by the choice of production quantities, that is, if we won’t change the size of the
+workforce or the number of machines in the shop.
+
+590
+
+Chapter 16
+
+591
+
+Aggregate and Workforce Planning
+
+The demand constraints are easy. Since we can sell at most 100 units per week of product 1
+and 50 units per week of product 2, our decision variables X 1 and X 2 must satisfy
+X 1 ≤ 100
+X 2 ≤ 50
+The capacity constraints are a little more work. Since there are four machines, which run at
+most 2,400 minutes per week, we must ensure that our production quantities do not violate this
+constraint on each machine. Consider workstation A. Each unit of product 1 we produce requires
+15 minutes on this workstation, while each unit of product 2 we produce requires 10 minutes.
+Hence, the total number of minutes of time required on workstation A to produce X 1 units of
+product 1 and X 2 units of product 2 is10
+15X 1 + 10X 2
+so the capacity constraint for workstation A is
+15X 1 + 10X 2 ≤ 2,400
+Proceeding analogously for workstations B, C, and D, we can write the other capacity constraints
+as follows:
+15X 1 + 35X 2 ≤ 2,400
+
+workstation B
+
+15X 1 + 5X 2 ≤ 2,400
+
+workstation C
+
+25X 1 + 14X 2 ≤ 2,400
+
+workstation D
+
+We have now completely deﬁned the following LP model of our optimization problem:
+Maximize
+
+45X 1 + 60X 2
+
+(16.107)
+
+X 1 ≤ 100
+
+(16.108)
+
+X 2 ≤ 50
+
+(16.109)
+
+15X 1 + 10X 2 ≤ 2,400
+
+(16.110)
+
+15X 1 + 35X 2 ≤ 2,400
+
+(16.111)
+
+15X 1 + 5X 2 ≤ 2,400
+
+(16.112)
+
+25X 1 + 14X 2 ≤ 2,400
+
+(16.113)
+
+Subject to:
+
+Some LP packages allow the user to enter the problem in a form almost identical to that shown
+in formulation (16.107)–(16.113). Spreadsheet programs generally require the decision variables
+to be entered into cells and the constraints speciﬁed in terms of these cells. More sophisticated
+LP solvers allow the user to specify blocks of similar constraints in a concise form, which can
+substantially reduce modeling time for large problems.
+Finally, with regard to formulation, we point out that we have not stated explicitly the constraints
+that X 1 and X 2 be non-negative. Of course, they must be, since negative production quantities
+make no sense. In many LP packages, decision variables are assumed to be non-negative unless
+10 Note that this constraint does not address such detailed considerations as setup times that depend on the
+sequence of products run on workstation A or whether full utilization of workstation A is possible given the
+WIP in the system. But as we discussed in Chapter 13, these issues are addressed at a lower level in the
+production planning and control hierarchy (e.g., in the sequencing and scheduling module).
+
+592
+
+Part III
+
+Principles in Practice
+
+the user speciﬁes otherwise. In other packages, the user must include the non-negativity constraints
+explicitly. This is something to beware of when using LP software.
+
+Solution
+To get a general idea of how an LP package works, let us consider the above formulation from a
+mathematical perspective. First, note that any pair of X 1 and X 2 that satisﬁes
+15X 1 + 35X 2 ≤ 2,400
+
+workstation B
+
+15X 1 + 10X 2 ≤ 2,400
+
+workstation A
+
+15X 1 + 5X 2 ≤ 2,400
+
+workstation C
+
+will also satisfy
+
+because these differ only by having smaller coefﬁcients for X 2 . This means that the constraints
+for workstations A and C are redundant. Leaving them out will not affect the solution. In general,
+it does not hurt anything to have redundant constraints in an LP formulation. But to make our
+graphical illustration of how LP works as clear as possible, we will omit constraints (16.110) and
+(16.112) from here on.
+Figure 16.15 illustrates problem (16.107)–(16.113) in graphical form, where X 1 is plotted on
+the horizontal axis and X 2 is plotted on the vertical axis. The shaded area is the feasible region,
+consisting of all the pairs of X 1 and X 2 that satisfy the constraints. For instance, the demand
+constraints (16.108) and (16.109) simply state that X 1 cannot be larger than 100, and X 2 cannot
+be larger than 50. The capacity constraints are graphed by noting that, with a bit of algebra, we
+can write constraints (16.111) and (16.113) as
+X2 ≤ −
+
+X2 ≤ −
+
+X1 +
+
+2,400
+= −0.429X 1 + 68.57
+35
+
+(16.114)
+
+X1 +
+
+2,400
+= −1.786X 1 + 171.43
+14
+
+(16.115)
+
+ 15 
+35
+
+ 25 
+14
+
+If we replace the inequalities with equality signs in equations (16.114) and (16.115), then these are
+simply equations of straight lines. Figure 16.15 plots these lines. The set of X 1 and X 2 points that
+satisfy these constraints includes all the points lying below both of these lines. The points marked
+by the shaded area are those satisfying all the demand, capacity, and non-negativity constraints.
+This type of feasible region deﬁned by linear constraints is known as a polyhedron.
+Now that we have characterized the feasible region, we turn to the objective. Let Z represent the
+value of the objective (i.e., net proﬁt achieved by producing quantities X 1 and X 2 ). From objective
+
+Figure 16.15
+
+25X1 + 14X2 = 2,400
+
+140.00
+
+Feasible region for LP
+example.
+
+X1 = 100
+
+120.00
+
+15X1 + 35X2 = 2,400
+
+X2
+
+100.00
+80.00
+60.00
+
+X2 = 50
+
+40.00
+Feasible region
+
+20.00
+0.00
+
+0
+
+50
+
+100
+X1
+
+150
+
+Chapter 16
+
+Figure 16.16
+
+593
+
+Aggregate and Workforce Planning
+
+140.00
+
+Solution to LP example.
+
+120.00
+
+Z = 5,557.94
+
+X2
+
+100.00
+Z = 7,000
+
+80.00
+
+Optimal solution
+(75.79, 36.09)
+
+60.00
+40.00
+Feasible
+region
+
+20.00
+0.00
+
+0
+
+Z = 3,000
+50
+
+100
+
+150
+
+X1
+
+(16.107), X 1 and X 2 are related to Z by
+45X 1 + 60X 2 = Z
+We can write this in the usual form for a straight line as
+
+
+Z
+Z
+−45
+X1 +
+= −0.75X 1 +
+X2 =
+60
+60
+60
+
+(16.116)
+
+(16.117)
+
+Figure 16.16 illustrates equation (16.117) for Z = 3,000, 5,557.94, and 7,000. Notice that for
+Z = 3,000, the line passes through the feasible region, leaving some points above it. Hence, we
+can feasibly increase proﬁt (that is, Z ). For Z = 7,000 the line lies entirely above the feasible
+region. Hence, Z = 7,000 is not feasible. For Z = 5,557.94, the objective function just touches
+the feasible region at a single point, the point (X 1 = 75.79, X 2 = 36.09). This is the optimal
+solution. Values of Z above 5,557.74 are infeasible, values below it are suboptimal. The optimal
+product mix, therefore, is to produce 75.79 (or 75, rounded to an integer value) units of product 1
+and 36.09 (rounded to 36) units of product 2.
+We can think of ﬁnding the solution to an LP by steadily increasing the objective value (Z ),
+moving the objective function up and to the right, until it is just about to leave the feasible region.
+Because the feasible region is a polyhedron whose sides are made up of linear constraints, the last
+point of contact between the objective function and the feasible region will be a corner, or extreme
+point, of the feasible region.11 This observation allows the optimization algorithm to ignore the
+inﬁnitely many points inside the feasible region and search for a solution among the ﬁnite set
+of extreme points. The simplex algorithm, developed in the 1940s and still widely used, works
+in just this way, proceeding around the outside of the polyhedron, trying extreme points until an
+optimal one is found. Other, more modern algorithms use different schemes to ﬁnd the optimal
+point, but will still converge to an extreme-point solution.
+
+Sensitivity Analysis
+The fact that the optimal solution to an LP lies at an extreme point enables us to perform useful
+sensitivity analysis on the optimal solution. The principal sensitivity information available to us
+falls into the following three categories.
+1. Coefﬁcients in the objective function. For instance, if we were to change the unit proﬁt
+for product 1 from $45 to $60, then the equation for the objective function would change from
+11 Actually, it is possible that the optimal objective function lies right along a ﬂat spot connecting two
+extreme points of the polyhedron. When this occurs, there are many pairs of X 1 and X 2 that attain the
+optimal value of Z , and the solution is called degenerate. Even in this case, however, an extreme point
+(actually, at least two extreme points) will be among the optimal solutions.
+
+594
+
+Part III
+
+Figure 16.17
+
+Principles in Practice
+
+140.00
+
+Effect of changing
+objective coefﬁcients in
+LP example.
+
+120.00
+45X1 + 60X2 = 5,557.94
+
+X2
+
+100.00
+
+60X1 + 60X2 = 6,712.80
+
+80.00
+60.00
+40.00
+Feasible region
+
+20.00
+0.00
+
+0
+
+50
+
+100
+
+150
+
+X1
+
+equation (16.117) to
+
+
+60
+Z
+Z
+X2 = −
+X1 +
+= −X 1 +
+60
+60
+60
+
+(16.118)
+
+so the slope changes from −0.75 to −1; that is, it gets steeper. Figure 16.17 illustrates the effect.
+Under this change, the optimal solution remains (X 1 = 75.79, X 2 = 36.09). Note, however that
+while the decision variables remain the same, the objective function does not. When the unit proﬁt
+for product 1 increases to $60, the proﬁt becomes
+60(75.79) + 60(36.09) = $6,712.80
+The optimal decision variables remain unchanged until the coefﬁcient of X 1 in the objective
+function reaches 107.14. When this happens, the slope becomes so steep that the point where the
+objective function just touches the feasible region moves to the extreme point (X 1 = 96, X 2 = 0).
+Geometrically, the objective function “rocked around” to a new extreme point. Economically, the
+proﬁt from product 1 reached a point where it became optimal to produce all product 1 and no
+product 2.
+In general, LP packages will report a range for each coefﬁcient in the objective function for
+which the optimal solution (in terms of the decision variables) remains unchanged. Note that these
+ranges are valid only for one-at-a-time changes. If two or more coefﬁcients are changed, the effect
+is more difﬁcult to characterize. One has to rerun the model with multiple coefﬁcient changes to
+get a feel for their effect.
+2. Coefﬁcients in the constraints. If the number of minutes required on workstation B by
+product 1 is changed from 15 to 20, then the equation deﬁned by the capacity constraint for
+workstation B changes from equation (16.114) to
+X2 ≤ −
+
+
+
+20
+35
+
+
+
+X1 +
+
+2,400
+= −0.571X 1 + 68.57
+35
+
+(16.119)
+
+so the slope changes from −0.429 to −0.571; again, it becomes steeper. In a manner analogous
+to that described above for coefﬁcients in the objective function, LP packages can determine how
+much a given coefﬁcient can change before it ceases to deﬁne the optimal extreme point. However,
+because changing the coefﬁcients in the constraints moves the extreme points themselves, the
+optimal decision variables will also change. For this reason, most LP packages do not report this
+sensitivity data, but rather make use of this product as part of a parametric programming option
+to quickly generate new solutions for speciﬁed changes in the constraint coefﬁcients.
+3. Right-hand side coefﬁcients. Probably the most useful sensitivity information provided
+by LP models is for the right-hand side variables in the constraints. For instance, in formulation
+(16.107)–(16.113), if we run 100 minutes of overtime per week on machine B, then its right-hand
+
+Chapter 16
+
+595
+
+Aggregate and Workforce Planning
+
+side will increase from 2,400 to 2,500. Since this is something we might want to consider, we
+would like to be able to determine its effect. We do this differently for two types of constraints:
+a. Slack constraints are constraints that do not deﬁne the optimal extreme point. The capacity
+constraints for workstations A and C are slack, since we determined right at the outset that they
+could not affect the solution. The constraint X 2 ≤ 50 is also slack, as can be seen in Figures 16.15
+and 16.16, although we did not know this until we solved the problem.
+Small changes in slack constraints do not change the optimal decision variables or objective
+value at all. If we change the demand constraint on product 2 to X 2 ≤ 49, it still won’t affect the
+optimal solution. Indeed, not until we reduce the constraint to X 2 ≤ 36.09 will it have any effect.
+Likewise, increasing the right-hand side of this constraint (above 50) will not affect the solution.
+Thus, for a slack constraint, the LP package tells us how far we can vary the right-hand side without
+changing the solution. These are referred to as the allowable increase and allowable decrease of
+the right-hand side coefﬁcients.
+b. Tight constraints are constraints that deﬁne the optimal extreme point. Changing them
+changes the extreme point, and hence the optimal solution. For instance, the constraint that the
+number of hours per week on workstation B not exceed 2,400, that is,
+15X 1 + 35X 2 ≤ 2,400
+is a tight constraint in Figures 16.15 and 16.16. If we increase or decrease the right-hand side,
+the optimal solution will change. However, if the changes are small enough, then the optimal
+extreme point will still be deﬁned by the same constraints (i.e., the time on workstations B and D).
+Because of this, we are able to compute the following:
+Shadow prices are the amount by which the objective increases per unit increase in the
+right-hand side of a constraint. Since slack constraints do not affect the optimal solution,
+changing their right-hand sides has no effect, and hence their shadow prices are always
+zero. Tight constraints, however, generally have nonzero shadow prices. For instance, the
+shadow price for the constraint on workstation B is 1.31. (Any LP solver will automatically
+compute this value.) This means that the objective will increase by $1.31 for every extra
+minute per week on the workstation. So if we can work 2,500 minutes per week on
+workstation B, instead of 2,400, the objective will increase by 100 × 1.31 = $131.
+Maximum allowable increase/decrease gives the range over which the shadow prices are
+valid. If we change a right-hand side by more than the maximum allowable increase or
+decrease, then the set of constraints that deﬁne the optimal extreme point may change, and
+hence the shadow price may also change. For example, as Figure 16.18 shows, if we
+increase the right-hand side of the constraint on workstation B from 2,400 to 2,770, the
+constraint moves to the very edge of the feasible region deﬁned by 25X 1 + 14X 2 ≤ 2,400
+(machine D) and X 2 ≤ 50. Any further increases in the right-hand side will cause this
+constraint to become slack. Hence, the shadow price is $1.31 up to a maximum allowable
+
+Figure 16.18
+
+25X1 + 14X2 = 2,400
+
+140.00
+
+X1 = 100
+
+15X1 + 35X2 = 2,770
+
+120.00
+
+15X1 + 35X2 = 2,400
+
+100.00
+X2
+
+Feasible region when
+RHS of constraint of
+workstation B is increased
+to 2,770.
+
+80.00
+60.00
+
+X2 = 50
+
+40.00
+Feasible region
+
+20.00
+0.00
+
+0
+
+50
+
+100
+X1
+
+150
+
+596
+
+Part III
+
+Principles in Practice
+
+increase of 370 (that is, 2,770 - 2,400). In this example, the shadow price is zero for
+changes above the maximum allowable increase. This is not always the case, however, so in
+general we must resolve the LP to determine the shadow prices beyond the maximum
+allowable increase or decrease.
+
+Study Questions
+1. Although the technology for solving aggregate planning models (linear programming) is well
+established and AP modules are widely available in commercial systems (e.g., MRP II
+systems), aggregate planning does not occupy a central place in the planning function of
+many firms. Why do you think this is true? What difficulties in modeling, interpreting, and
+implementing AP models might be contributing to this?
+
+2. Why does it make sense to consider workforce planning and aggregate planning
+simultaneously in many situations?
+
+3. What is the difference between a chase production plan and a level production plan, with
+respect to the amount of inventory carried and the fluctuation in output quantity over time?
+How do the production plans generated by an LP model relate to these two types of plan?
+
+4. In a basic LP formulation of the product mix aggregate planning problem, what information is
+provided by the following?
+(a) The optimal decision variables.
+(b) The optimal objective function.
+(c) Identification of which constraints are tight and which are slack.
+(d) Shadow prices for the right-hand sides of the constraints.
+
+Problems
+1. Suppose a plant can supplement its capacity by subcontracting part of or all the production
+of certain parts.
+(a) Show how to modify LP (16.28)-(16.32) to include this option, where we define
+
+Vit
+
+=
+
+kit
+
+=
+
+units of product i received from a subcontractor in period t
+premium paid for subcontracting product i in period t (i.e., cost
+above variable cost of making it in-house)
+
+�it
+
+=
+
+minimum amount of product i that must be purchased in period t
+
+=
+
+maximum amount of product i that can be purchased in period t
+
+(e.g., specified as part of long-term contract with supplier)
+
+Vit
+
+(e.g., due to capacity constraints on supplier, as specified
+in long-term contract)
+(b) How would you modify the formulation in part (a) if the contract with a supplier
+stipulated only that total purchases of product i over the time horizon must be at least � ?
+(c) How would you modify the formulation in part (a) if the supplier contract, instead of
+specifying � and ii, stipulated that the firm specify a base amount of product i, to be
+purchased every month, and that the maximum purchase in a given month can exceed
+the base amount by no more than 20 percent?
+(d) What role might models like those in parts (a) to (c) play in the process of negotiating
+contracts with suppliers?
+
+2. Show how to modify LP (16.49)-(16.54) to represent the case where overtime on all the
+workstations must be scheduled simultaneously (i.e., if one resource runs overtime, all
+resources run overtime). Describe how you would handle the case where, in general,
+different workstations can have different amounts of overtime, but two workstations, say A
+and B, must always be scheduled for overtime together.
+
+Chapter 16
+
+597
+
+Aggregate and Workforce Planning
+
+3. Show how to modify LP (16.61)–(16.67) of the workforce planning problem to
+accommodate multiple products.
+4. You have just been made corporate vice president in charge of manufacturing for an
+automotive components company and are directly in charge of assigning products to plants.
+Among many other products, the ﬁrm makes automotive batteries in three grades: heavyduty, standard, and economy. The unit net proﬁts and maximum daily demand for these
+products are given in the ﬁrst table below. The ﬁrm has three locations where the batteries
+can be produced. The maximum assembly capacities, for any mix of battery grades, are
+given in the second table below. The number of batteries that can be produced at a location is
+limited by the amount of suitably formulated lead the location can produce. The lead
+requirements for each grade of battery and the maximum lead production for each location
+are also given in the following tables.
+
+Product
+
+Unit
+Proﬁt
+($/battery)
+
+Maximum
+Demand
+(batteries/day)
+
+Lead
+Requirements
+(lbs/battery)
+
+Heavy-duty
+Standard
+Economy
+
+12
+10
+7
+
+700
+900
+450
+
+21
+17
+14
+
+Plant
+Location
+
+Assembly
+Capacity
+(batteries/day)
+
+Maximum Lead
+Production
+(lbs/day)
+
+1
+2
+3
+
+550
+750
+225
+
+10,000
+7,000
+4,200
+
+(a) Formulate a linear program that allocates production of the three grades among the three
+locations in a manner that maximizes proﬁt.
+(b) Suppose company policy requires that the fraction of capacity (units scheduled/
+assembly capacity) be the same at all locations. Show how to modify your LP to
+incorporate this constraint.
+(c) Suppose company policy dictates that at least 50 percent of the batteries produced must
+be heavy-duty. Show how to modify your LP to incorporate this constraint.
+5. Youohimga, Inc., makes a variety of computer storage devices, which can be divided into
+two main families that we call A and B. All devices in family A have the same routing and
+similar processing requirements at each workstation; similarly for family B. There are a total
+of 10 machines used to produce the two families, where the routings for A and B have some
+workstations in common (i.e., shared) but also contain unique (unshared) workstations.
+Because Youohimga does not always have sufﬁcient capacity to meet demand, especially
+during the peak demand period (i.e., the months near the start of the school year in
+September), in the past it has contracted out production of some of its products to vendors
+(i.e., the vendors manufacture devices that are shipped out under Youohimga’s label). This
+year, Youohimga has decided to use a systematic aggregate planning process to determine
+vendoring needs and a long-term production plan.
+(a) Using the following notation
+X it = units of family i (i = A, B) produced in month t (t = 1, . . . , 24) and available to
+meet demand in month t
+
+598
+
+Part III
+
+Principles in Practice
+
+Vit = units of family i purchased from vendor in month t and available to meet demand
+in month t
+Iit = ﬁnished goods inventory of family i at end of month t
+dit = units of family i demanded (and shipped) during month t
+c jt = hours available on work center j( j = 1, . . . , 10) in month t
+ai j = hours required at work center j per unit of family i
+v i = premium (i.e., extra cost) per unit of family i that is vendored instead of being
+produced in-house
+h i = holding cost to carry one unit of family i in inventory from one month to the next
+formulate a linear program that minimizes the cost (holding plus vendoring premium)
+over a two-year (24-month) planning horizon of meeting monthly demand (i.e., no
+backorders are permitted). You may assume that vendor capacity for both families is
+unlimited and that there is no inventory of either family on hand at the beginning of the
+planning horizon.
+(b) Which of the following factors might make sense to examine in the aggregate planning
+model to help formulate a sensible vendoring strategy?
+r Altering machine capacities
+r Sequencing and scheduling
+r Varying size of workforce
+r Alternate shop ﬂoor control mechanisms
+r Vendoring individual operations rather than complete products
+r All the above
+(c) Suppose you run the model in part (a) and it suggests vendoring 50 percent of the total
+demand for family A and 50 percent of the demand for B. Vendoring 100 percent of A
+and 0 percent of B is capacity-feasible, but results in a higher cost in the model. Could
+the 100–0 plan be preferable to the 50–50 plan in practice? If so, explain why.
+6. Mr. B. O’Problem of Rancid Industries must decide on a production strategy for two
+top-secret products, which for security reasons we will call A and B. The questions concern
+(1) whether to produce these products at all and (2) how much of each to produce. Both
+products can be produced on a single machine, and there are three brands of machine that
+can be leased for this purpose. However, because of availability problems, Rancid can lease
+at most one of each brand of machine. Thus, O’Problem must also decide which, if any, of
+the machines to lease. The relevant machine and product data are given below:
+
+Machine
+
+Hours to Produce
+One Unit of A
+
+Hours to Produce
+One Unit of B
+
+Weekly Capacity
+(hours)
+
+Weekly Lease +
+Operating Cost ($)
+
+Brand 1
+Brand 2
+Brand 3
+
+0.5
+0.4
+0.6
+
+1.2
+1.2
+0.8
+
+80
+80
+80
+
+20,000
+22,000
+18,000
+
+Product
+
+Maximum Demand
+(units/week)
+
+Net Unit Proﬁt
+($/unit)
+
+A
+B
+
+200
+100
+
+150
+225
+
+Chapter 16
+
+599
+
+Aggregate and Workforce Planning
+
+(a) Letting X i j represent the number of units of product i produced per week on machine j
+(for example, X A1 is the number of units of A produced on the brand 1 machine),
+formulate an LP to maximize weekly proﬁt (including leasing cost) subject to the
+capacity and demand constraints. (Hint: Observe that the leasing/operating cost for a
+particular machine is only incurred if that machine is used and that this cost is ﬁxed for
+any nonzero production level. Carefully deﬁne 0–1 integer variables to represent the
+all-or-nothing aspects of this decision.)
+(b) Suppose that the suppliers of brand 1 machines and brand 2 machines are feuding and
+will not service the same company. Show how to modify your formulation to ensure that
+Rancid leases either brand 1 or brand 2 or neither, but not both.
+7. All-Balsa, Inc., produces two models of bookcases, for which the relevant data are
+summarized as follows:
+
+Selling price
+Labor required
+Bottleneck machine time required
+Raw material required
+
+Bookcase 1
+
+Bookcase 2
+
+$15
+0.75 hour/unit
+1.5 hours/unit
+2 bf/unit
+
+$8
+0.5 hour/unit
+0.8 hour/unit
+1 bf/unit
+
+P1 = units of bookcase 1 produced per week
+P2 = units of bookcase 2 produced per week
+OT = hours of overtime used per week
+RM = board-feet of raw material purchased per week
+A1 = dollars per week spent on advertising bookcase 1
+A2 = dollars per week spent on advertising bookcase 2
+Each week, up to 400 board feet (bf ) of raw material is available at a cost of $1.50/bf. The
+company employs four workers, who work 40 hours per week for a total regular-time labor
+supply of 160 hours per week. They work regardless of production volumes, so their salaries
+are treated as a ﬁxed cost. Workers can be asked to work overtime and are paid $6 per hour
+for overtime work. There are 320 hours per week available on the bottleneck machine.
+In the absence of advertising, 50 units per week of bookcase 1 and 60 units per week of
+bookcase 2 will be demanded. Advertising can be used to stimulate demand for each product.
+Experience shows that each dollar spent on advertising bookcase 1 increases demand for
+bookcase 1 by 10 units, while each dollar spent on advertising bookcase 2 increases demand
+for bookcase 2 by 15 units. At most, $100 per week can be spent on advertising.
+An LP formulation and solution of the problem to determine how much of each product
+to produce each week, how much raw material to buy, how much overtime to use, and how
+much advertising to buy are given below. Answer the following on the basis of this output.
+MAX
+15 P1 + 8 P2 - 6 OT - 1.5 RM - A1 - A2
+SUBJECT TO
+2) P1 - 10 A1 <= 50
+3) P2 - 15 A2 <= 60
+4) 0.75 P1 + 0.5 P2 - OT <= 160
+5) 2 P1 + P2 - RM <= 0
+6) RM <= 400
+7) A1 + A2 <= 100
+8) 1.5 P1 + 0.8 P2 <= 320
+END
+
+600
+
+Part III
+
+Principles in Practice
+
+OBJECTIVE FUNCTION VALUE
+1)
+
+2427.66700
+
+VARIABLE
+P1
+P2
+OT
+RM
+A1
+A2
+
+VALUE
+160.000000
+80.000000
+.000000
+400.000000
+11.000000
+1.333333
+
+REDUCED COST
+.000000
+.000000
+2.133334
+.000000
+.000000
+.000000
+
+ROW
+2)
+3)
+4)
+5)
+6)
+7)
+8)
+
+SLACK OR SURPLUS
+.000000
+.000000
+.000000
+.000000
+.000000
+87.666660
+16.000000
+
+DUAL PRICES
+.100000
+.066667
+3.866666
+6.000000
+4.500000
+.000000
+.000000
+
+NO. ITERATIONS =
+
+5
+
+RANGES IN WHICH THE BASIS IS UNCHANGED:
+
+VARIABLE
+P1
+P2
+OT
+RM
+A1
+A2
+
+ROW
+2
+3
+4
+5
+6
+7
+8
+
+CURRENT
+COEF
+15.000000
+8.000000
+-6.000000
+-1.500000
+-1.000000
+-1.000000
+
+OBJ COEFFICIENT RANGES
+ALLOWABLE
+ALLOWABLE
+INCREASE
+DECREASE
+.966667
+.533333
+.266667
+.483333
+2.133334
+INFINITY
+INFINITY
+4.500000
+1.000000
+5.333335
+1.000000
+7.249999
+
+CURRENT
+RHS
+50.000000
+60.000000
+160.000000
+.000000
+400.000000
+100.000000
+320.000000
+
+RIGHT-HAND SIDE RANGES
+ALLOWABLE
+ALLOWABLE
+INCREASE
+DECREASE
+110.000000
+876.666600
+20.000000
+1315.000000
+27.500000
+2.500000
+6.666667
+55.000000
+6.666667
+55.000000
+INFINITY
+87.666660
+INFINITY
+16.000000
+
+(a) If overtime costs only $4 per hour (and all other parameters remain unchanged), how
+much overtime should All-Balsa use?
+(b) If each unit of bookcase 1 sold for $15.50 (and all other parameters are unchanged),
+what will the optimal proﬁt per week be—or can you not tell without resolving the LP?
+(c) What is the most All-Balsa should be willing to pay for another unit of raw material?
+(d) If each worker were required (as part of the regular workweek) to work 45 hours per
+week (and all other parameters remained unchanged), what would the company’s proﬁt
+be?
+(e) If each unit of bookcase 2 sold for $10 (and all other parameters remained unchanged),
+what would be the optimal quantity of bookcase 2 to produce—or can you not tell
+without resolving the LP?
+(f) Reconsider the All-Balsa problem formulation and suppose that instead of having
+400 bf of raw material available at $1.50/bf, All-Balsa faces a two-tier pricing scheme
+such that the ﬁrst 200 bf/week costs $2.00/bf, but any amount above 200 bf/week up to a
+
+Chapter 16
+
+601
+
+Aggregate and Workforce Planning
+
+limit of an additional 300 bf/week costs $ p/bf. (Note: p is a constant, not a variable, and
+we cannot purchase the $ p/bf raw material unless we ﬁrst purchase 200 bf of the
+$2.00 raw material.) To modify the LP to compute an “optimal” production/advertising
+policy, we deﬁne
+RM1 = bf of raw material purchased at $2.00/bf
+RM2 = bf of raw material purchased at $ p/bf
+To formulate an appropriate LP to represent this new pricing scheme, we ﬁrst replace
+1.5RM in the objective function by 2RM1 + pRM2.
+i. If p > 2, what other changes in the previous LP make it properly reﬂect the new
+pricing scheme?
+ii. If p < 2, what other changes in the previous LP make it properly reﬂect the new
+pricing scheme?
+8. Consider a production line with four workstations, labeled j = 1, 2, 3, and 4, in tandem (all
+products ﬂow through all four machines in order). Three different products, labeled i = A,
+B, and C, are produced on the line. The hours required on each workstation for each product
+and the net proﬁt per unit sold (ri ) are given as follows:
+
+j
+i
+
+1
+
+2
+
+3
+
+4
+
+ri
+
+A
+B
+C
+
+2.4
+2.0
+0.9
+
+1.1
+2.2
+0.9
+
+0.8
+1.2
+1.0
+
+3.0
+2.1
+2.5
+
+$50
+$65
+$70
+
+The number of hours available (c jt ) and the upper and lower limits on demand (d̄it and d it )
+for each product over the next four quarters are as follows:
+
+t
+
+1
+
+2
+
+3
+
+4
+
+c1t
+c2t
+c3t
+c4t
+
+640
+640
+1,920
+1,280
+
+640
+640
+1,920
+1,280
+
+1,280
+640
+1,920
+1,280
+
+1,280
+640
+1,920
+2,560
+
+d̄ At
+d At
+d̄ Bt
+d Bt
+d̄Ct
+d Ct
+
+100
+0
+100
+20
+300
+0
+
+50
+0
+100
+20
+250
+0
+
+50
+0
+100
+20
+250
+0
+
+75
+0
+100
+25
+400
+50
+
+(a) Suppose we use a quarterly holding cost of $5 and a quarterly backorder cost of $10 per
+item on all products and allow backordering. Formulate an LP to maximize proﬁt minus
+holding and backorder costs subject to the constraints on workstation capacity and
+minimum/maximum sales.
+(b) Using the LP solver of your choice, solve your formulation in part (a). Which
+constraints are binding in your solution?
+(c) Suppose that there is an inspect operation immediately after station 2 (which has plenty
+of capacity and therefore does not need to be modeled as an extra resource) and 20
+
+602
+
+Part III
+
+Principles in Practice
+
+percent of the parts (regardless of product type) are recycled back through stations 1 and
+2. Show how to modify your formulation in part a to model this.
+9. A manufacturer of high-voltage switches projects demand (in units) for the upcoming year
+to be as follows.
+
+Jan
+Feb
+Mar
+Apr
+May
+Jun
+
+1,000
+1,000
+1,000
+2,000
+2,400
+2,500
+
+Jul
+Aug
+Sep
+Oct
+Nov
+Dec
+
+3,200
+2,000
+1,000
+900
+800
+800
+
+The plant runs 160 hours per month and produces at an average rate of 10 switches per hour.
+Unit proﬁt per switch sold is $50, and the estimated cost to hold a switch in inventory for
+1 month is $5. There is no inventory at the start of the year. Overtime can be used at a cost of
+$300 per hour.
+(a) Compute the inventory-holding and overtime cost of a chase production strategy
+(i.e., producing the amount demanded in each month).
+(b) Compute the inventory holding and overtime cost of a level production strategy
+(i.e., producing the same amount each month). If the monthly production quantity is set
+equal to average monthly demand, how much inventory will be left at the end of the
+year?
+(c) Compute a production strategy by solving a linear program to maximize proﬁt (i.e., net
+sales revenue minus inventory carrying cost minus overtime cost). Is the amount of
+overtime in the plan reasonable? If not, what changes to the LP model could be made to
+generate a more reasonable solution?
+(d) How does the solution change if the inventory carrying cost is reduced to $3 per unit per
+month? If overtime costs are reduced to $200 per hour? Given that these costs are
+approximate, what do these results imply about the production plan?
+10. Reconsider Problem 2 of Chapter 6 in which a manufacturer produced three models of
+vacuum cleaner on a three-station production line.
+(a) Use linear programming to compute a monthly production plan that maximizes monthly
+proﬁt, and compare it to the proﬁt resulting from the current plan given in Chapter 6 and
+those suggested by the labor hours and ABA cost accounting calculations.
+(b) Could this LP solution have been arrived at by rank-ordering the products according to
+proﬁtability by a cost accounting scheme? What does this say about the effectiveness of
+using accounting methods to plan production schedules?
+
+
