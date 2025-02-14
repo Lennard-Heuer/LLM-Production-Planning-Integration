@@ -1,0 +1,165 @@
+"""
+8. Model: Function to Optimize Workforce Planning
+
+Parameters:
+
+workstations_total: Total number of workstations.
+time_horizon: Planning horizon (number of periods).
+profit: Revenue per unit.
+holding_cost: Holding costs per unit.
+max_demand: Maximum demand in each period.
+min_sales: Minimum sales required in each period.
+production_time: Production time required on each workstation.
+workstation_capacity: Capacity of each workstation in each period.
+initial_inventory: Initial inventory at the start of the first period.
+worker_hours_per_product: Number of worker-hours required to produce one unit.
+hourly_wage: Cost of regular time in dollars per worker-hour.
+hourly_wage_overtime: Cost of overtime in dollars per worker-hour.
+hiring_cost: Cost to increase workforce by one worker-hour per period.
+layoff_cost: Cost to decrease workforce by one worker-hour per period.
+initial_workers: Initial number of worker-hours available.
+
+j = an index of workstation, j = 1, . . . , n, so n represents total
+number of workstations
+t = an index of period, t = 1, . . . , ¯t, so ¯t represents planning horizon
+
+max_demand[i][t] = maximum demand for product i in period t
+min_sales[i][t] = minimum sales allowed of product i in period t
+
+worker_hours_per_product[j] = number of worker-hours required to produce one unit of product
+time_on_workstation[i][j] = time required on workstation j to produce one unit of product i
+workstation_capacity[j][t] = capacity of workstation j in period t in units consistent with those used to define production_time[i][j]
+
+hourly_wage = cost of regular time in dollars per worker-hour
+hourly_wage_overtime = cost of overtime in dollars per worker-hour
+hiring_cost = cost to increase workforce by one worker-hour per period
+layoff_cost = cost to decrease workforce by one worker-hour per period
+
+X[t] = amount produced in period t
+S[t] = amount sold in period t
+I[t] = inventory at end of t (I0 is given as data)
+W[t] = workforce in period t in worker-hours of regular time (W0 is given as data)
+H[t] = increase (hires) in workforce from period t-1 to t in worker-hours
+F[t] = decrease (fires) in workforce from period t-1 to t in worker-hours
+O[t] = overtime in period t in hours
+"""
+
+from gurobipy import Model, GRB
+
+def supply_chain_math_model(
+    time_horizon, profit, holding_costs, max_demand, workstation_capacity, 
+    initial_inventory, products_total, workstations_total, min_sales, 
+    production_time, resources_total, resource_requirement, resource_capacity, 
+    capacity_reduction_factor, backorders_penalty, overtime_cost, yield_loss,
+    worker_hours_per_product, hourly_wage, hourly_wage_overtime, hiring_cost, layoff_cost, initial_workers
+):
+    # Create the problem
+    model = Model("Supply_Chain_Optimization_With_Workforce")
+    model.ModelSense = GRB.MAXIMIZE
+
+    # Index ranges
+    products = range(products_total)
+    periods = range(time_horizon)
+    workstations = range(workstations_total)
+    resources = range(resources_total)
+
+    # Decision Variables
+    X = model.addVars(products, periods, lb=0, name="Produced")  # Production
+    S = model.addVars(products, periods, lb=0, name="Sold")      # Sales
+    I_plus = model.addVars(products, periods, lb=0, name="Inventory") # Positive Inventory
+    I_minus = model.addVars(products, periods, lb=0, name="Backorders") # Backorders
+    O = model.addVars(workstations, periods, lb=0, name="Overtime")  # Overtime
+    W = model.addVars(periods, lb=0, name="Workforce") # Workforce available
+    H = model.addVars(periods, lb=0, name="Hires")     # Workforce hired
+    F = model.addVars(periods, lb=0, name="Layoffs")   # Workforce laid off
+
+    # Objective Function
+    profit_term = sum(profit[i] * S[i, t] for i in products for t in periods)
+    holding_cost_term = sum(holding_costs[i] * I_plus[i, t] for i in products for t in periods)
+    backorders_penalty_term = sum(backorders_penalty[i] * I_minus[i, t] for i in products for t in periods)
+    overtime_cost_term = sum(overtime_cost[j] * O[j, t] for j in workstations for t in periods)
+    workforce_cost_term = sum(hourly_wage * W[t] + hourly_wage_overtime * O[t] + hiring_cost * H[t] + layoff_cost * F[t] for t in periods)
+    model.setObjective(profit_term - holding_cost_term - backorders_penalty_term - overtime_cost_term - workforce_cost_term)
+
+    # Constraints
+    for i in products:
+        for t in periods:
+            model.addConstr(S[i, t] >= min_sales[i][t], name=f"Min_Sales_{i}_{t}")
+            model.addConstr(S[i, t] <= max_demand[i][t], name=f"Max_Demand_{i}_{t}")
+
+    for i in products:
+        for t in periods:
+            if t == 0:
+                model.addConstr(
+                    I_plus[i, t] - I_minus[i, t] == initial_inventory[i] + X[i, t] - S[i, t],
+                    name=f"Inventory_Balance_{i}_{t}"
+                )
+            else:
+                model.addConstr(
+                    I_plus[i, t] - I_minus[i, t] == I_plus[i, t - 1] - I_minus[i, t - 1] + X[i, t] - S[i, t],
+                    name=f"Inventory_Balance_{i}_{t}"
+                )
+
+    for j in workstations:
+        for t in periods:
+            model.addConstr(
+                sum(production_time[i][j] * X[i, t] / yield_loss[i][j] for i in products) <= workstation_capacity[j][t] * capacity_reduction_factor + O[j, t], 
+                name=f"Adjusted_Workstation_Capacity_{j}_{t}"
+            )
+
+    for r in resources:
+        for t in periods:
+            model.addConstr(
+                sum(resource_requirement[i][r] * X[i, t] for i in products) <= resource_capacity[r][t], 
+                name=f"Resource_Capacity_{r}_{t}"
+            )
+
+    for t in periods:
+        if t == 0:
+            model.addConstr(W[t] == initial_workers + H[t] - F[t], name=f"Workforce_Balance_{t}")
+        else:
+            model.addConstr(W[t] == W[t-1] + H[t] - F[t], name=f"Workforce_Balance_{t}")
+
+    for t in periods:
+        model.addConstr(worker_hours_per_product * sum(X[i, t] for i in products) <= W[t] + O[t], name=f"Workforce_Overtime_{t}")
+
+    # Solve the problem
+    model.optimize()
+
+    # Extract results
+    Produced = [[X[i, t].X for t in periods] for i in products]
+    Sold = [[S[i, t].X for t in periods] for i in products]
+    Inventory = [[I_plus[i, t].X for t in periods] for i in products]
+    Backorders = [[I_minus[i, t].X for t in periods] for i in products]
+    Overtime = [[O[j, t].X for t in periods] for j in workstations]
+    Workforce = [W[t].X for t in periods]
+    Hires = [H[t].X for t in periods]
+    Layoffs = [F[t].X for t in periods]
+
+    # Calculate Workstation Utilization
+    workstation_usage = [
+        [
+            (sum(production_time[i][j] * (X[i, t].X or 0) / yield_loss[i][j] for i in products) / (workstation_capacity[j][t] * capacity_reduction_factor + (O[j, t].X or 0))) * 100
+            if workstation_capacity[j][t] > 0 else 0
+            for t in periods
+        ]
+        for j in workstations
+    ]
+
+    workforce_usage = [
+        (worker_hours_per_product * sum(X[i, t].X for i in products) / (W[t].X + O[t].X)) * 100
+        if (W[t].X + O[t].X) > 0 else 0
+        for t in periods
+    ]
+
+    # Print Results
+    print("Produced:", Produced)
+    print("Sold:", Sold)
+    print("Inventory:", Inventory)
+    print("Backorders:", Backorders)
+    print("Overtime:", Overtime)
+    print("Workforce:", Workforce)
+    print("Hires:", Hires)
+    print("Layoffs:", Layoffs)
+    print("Usage:", workstation_usage)
+    print("UsageWF:", workforce_usage)

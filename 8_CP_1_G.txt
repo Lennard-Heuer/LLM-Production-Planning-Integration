@@ -1,0 +1,61 @@
+"""
+1. Model: Function to optimize aggregate production planning without workstations
+
+Parameters:
+time_horizon (int): Number of periods in the planning horizon.
+profit (list of float): Profit per unit for each product (list of size equal to the number of products).
+holding_costs (list of float): Holding costs per unit for each product (list of size equal to the number of products).
+max_demand (list of list of float): Maximum demand for each product in each period (2D list with dimensions [products x periods]).
+product_capacity  (list of list of float): Production capacity for each product in each period (2D list with dimensions [products x periods]).
+initial_inventory (list of float): Initial inventory for each product at the start of the first period (list of size equal to the number of products).
+products_total (int): Total number of products being considered in the model.
+
+Returns:
+dict: Optimal values of decision variables and total profit.
+"""
+from gurobipy import Model, GRB
+
+def optimize_multi_product_production(time_horizon, profit, holding_costs, max_demand, product_capacity, initial_inventory, products_total):
+    # Create the problem
+    problem = Model("Maximize_Profit_Multi_Product")
+    problem.ModelSense = GRB.MAXIMIZE
+
+    # Index ranges for products and periods
+    products = range(products_total)
+    periods = range(time_horizon)
+
+    # Decision Variables
+    X = problem.addVars(products, periods, lb=0, name="X")  # Amount produced
+    S = problem.addVars(products, periods, lb=0, name="S")  # Amount sold
+    I = problem.addVars(products, periods, lb=0, name="I")  # Inventory
+
+    # Objective Function
+    profit_term = sum(profit[i] * S[i, t] for i in products for t in periods)
+    holding_cost_term = sum(holding_costs[i] * I[i, t] for i in products for t in periods)
+    problem.setObjective(profit_term - holding_cost_term)
+
+    # Constraints
+    for i in products:
+        for t in periods:
+            # Demand constraint
+            problem.addConstr(S[i, t] <= max_demand[i][t], name=f"Demand_Constraint_Product_{i}_Period_{t}")
+            
+            # Inventory balance constraint
+            if t == 0:
+                problem.addConstr(I[i, t] == initial_inventory[i] + X[i, t] - S[i, t], name=f"Inventory_Balance_Product_{i}_Period_{t}")
+            else:
+                problem.addConstr(I[i, t] == I[i, t-1] + X[i, t] - S[i, t], name=f"Inventory_Balance_Product_{i}_Period_{t}")
+            
+            # Product-specific capacity constraint
+            problem.addConstr(X[i, t] <= product_capacity[i][t], name=f"Capacity_Constraint_Product_{i}_Period_{t}")
+
+    # Solve the problem
+    problem.optimize()
+
+    Produced = [[X[i, t].X for t in periods] for i in products]
+    Sale = [[S[i, t].X for t in periods] for i in products]
+    Stock = [[I[i, t].X for t in periods] for i in products]
+
+    print("Produced:", Produced)
+    print("Sale:", Sale)
+    print("Stock:", Stock)
