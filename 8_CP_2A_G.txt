@@ -80,7 +80,7 @@ def optimize_production_plan(time_horizon, profit, holding_costs, max_demand, wo
 
     # Extract results
     Produced = [[X[i, t].X for t in periods] for i in products]
-    Sold = [[S[i, t].X for t in periods] for i in products]
+    Sale = [[S[i, t].X for t in periods] for i in products]
     Inventory = [[I[i, t].X for t in periods] for i in products]
 
     # Calculate workstation utilization
@@ -94,6 +94,6 @@ def optimize_production_plan(time_horizon, profit, holding_costs, max_demand, wo
 
     # Print results
     print("Produced:", Produced)
-    print("Sale:", Sold)
+    print("Sale:", Sale)
     print("Stock:", Inventory)
     print("Usage:", workstation_usage)
