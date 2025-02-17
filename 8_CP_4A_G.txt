@@ -82,7 +82,7 @@ def supply_chain_math_model(
     for j in workstations:
         for t in periods:
             model.addConstr(
-                sum(production_time[i][j] * X[i, t] for i in products) <= workstation_capacity[j][t] * capacity_reduction_factor, 
+                sum(production_time[i][j] * X[i, t] for i in products) <= workstation_capacity[j][t] * capacity_reduction_factor[j], 
                 name=f"Adjusted_Workstation_Capacity_{j}_{t}"
             )
 
