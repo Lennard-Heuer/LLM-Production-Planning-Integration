@@ -54,8 +54,8 @@ def optimize_multi_product_production(time_horizon, profit, holding_costs, max_d
 
     Produced = [[X[i, t].X for t in periods] for i in products]
     Sale = [[S[i, t].X for t in periods] for i in products]
-    Stock = [[I[i, t].X for t in periods] for i in products]
+    Inventory = [[I[i, t].X for t in periods] for i in products]
 
     print("Produced:", Produced)
     print("Sale:", Sale)
-    print("Stock:", Stock)
+    print("Inventory:", Inventory)
