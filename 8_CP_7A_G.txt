@@ -44,8 +44,8 @@ def supply_chain_optimization_with_yield_loss(
     production_time, workstation_capacity, profit, holding_costs, initial_inventory, yield_loss
 ):
     # Create the problem
-    model = Model("Supply_Chain_Optimization_With_Yield_Loss")
-    model.ModelSense = GRB.MAXIMIZE
+    problem = Model("Supply_Chain_Optimization_With_Yield_Loss")
+    problem.ModelSense = GRB.MAXIMIZE
 
     # Index ranges
     products = range(products_total)
@@ -53,45 +53,45 @@ def supply_chain_optimization_with_yield_loss(
     workstations = range(workstations_total)
 
     # Decision Variables
-    X = model.addVars(products, periods, lb=0, name="Produced")  # Production
-    S = model.addVars(products, periods, lb=0, name="Sold")      # Sales
-    I_plus = model.addVars(products, periods, lb=0, name="Inventory")  # Positive Inventory
-    I_minus = model.addVars(products, periods, lb=0, name="Backorders")  # Backorders
+    X = problem.addVars(products, periods, lb=0, name="Produced")  # Production
+    S = problem.addVars(products, periods, lb=0, name="Sold")      # Sales
+    I_plus = problem.addVars(products, periods, lb=0, name="Inventory")  # Positive Inventory
+    I_minus = problem.addVars(products, periods, lb=0, name="Backorders")  # Backorders
 
     # Objective Function
     profit_term = sum(profit[i] * S[i, t] for i in products for t in periods)
     holding_cost_term = sum(holding_costs[i] * I_plus[i, t] for i in products for t in periods)
-    model.setObjective(profit_term - holding_cost_term)
+    problem.setObjective(profit_term - holding_cost_term)
 
     # Constraints
     for i in products:
         for t in periods:
-            model.addConstr(S[i, t] >= min_sales[i][t], name=f"Min_Sales_{i}_{t}")
-            model.addConstr(S[i, t] <= max_demand[i][t], name=f"Max_Demand_{i}_{t}")
+            problem.addConstr(S[i, t] >= min_sales[i][t], name=f"Min_Sales_{i}_{t}")
+            problem.addConstr(S[i, t] <= max_demand[i][t], name=f"Max_Demand_{i}_{t}")
 
     for i in products:
         for t in periods:
             if t == 0:
-                model.addConstr(
+                problem.addConstr(
                     I_plus[i, t] - I_minus[i, t] == initial_inventory[i] + X[i, t] - S[i, t],
                     name=f"Inventory_Balance_{i}_{t}"
                 )
             else:
-                model.addConstr(
+                problem.addConstr(
                     I_plus[i, t] - I_minus[i, t] == I_plus[i, t - 1] - I_minus[i, t - 1] + X[i, t] - S[i, t],
                     name=f"Inventory_Balance_{i}_{t}"
                 )
 
     for j in workstations:
         for t in periods:
-            model.addConstr(
+            problem.addConstr(
                 sum(production_time[i][j] * X[i, t] / yield_loss[i][j] for i in products) <= workstation_capacity[j][t], 
                 name=f"Workstation_Capacity_{j}_{t}"
             )
 
     # Solve the problem
-    model.optimize()
-    Profit = model.ObjVal
+    problem.optimize()
+    Profit = problem.ObjVal
 
     # Extract results
     Produced = [[X[i, t].X for t in periods] for i in products]
