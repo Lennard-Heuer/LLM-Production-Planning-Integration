@@ -95,6 +95,7 @@ def production_optimization_with_setup(
 
     # Solve the problem
     model.optimize()
+    Profit = problem.ObjVal
 
     # Check for infeasibility and compute IIS if needed
     if model.status == GRB.INFEASIBLE:
