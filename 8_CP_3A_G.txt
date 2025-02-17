@@ -104,7 +104,7 @@ def supply_chain_math_model(
 
     # Extract results
     Produced = [[X[i, t].X for t in periods] for i in products]
-    Sold = [[S[i, t].X for t in periods] for i in products]
+    Sale = [[S[i, t].X for t in periods] for i in products]
     Inventory = [[I[i, t].X for t in periods] for i in products]
 
     # Calculate Workstation Utilization
@@ -129,7 +129,8 @@ def supply_chain_math_model(
 
     # Print Results
     print("Produced:", Produced)
-    print("Sold:", Sold)
+    print("Sale:", Sale)
     print("Inventory:", Inventory)
+
     print("Usage:", workstation_usage)
     print("UsageADD:", add_capacity_usage)
