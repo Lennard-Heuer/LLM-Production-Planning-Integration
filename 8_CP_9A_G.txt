@@ -40,28 +40,34 @@ Constraints:
 from gurobipy import Model, GRB, quicksum
 
 def production_optimization_with_setup(
-    time_horizon, products_total, workstations_total, profit, holding_costs, max_demand,
-    min_sales, workstation_capacity, initial_inventory, production_time, setup_cost
+    time_horizon, products_total, workstations_total, profit, holding_costs,
+    max_demand, min_sales, workstation_capacity, initial_inventory, 
+    production_time, setup_cost
 ):
     # Initialize the model
     model = Model("Production_Optimization_with_Setup")
     model.ModelSense = GRB.MAXIMIZE
 
+    # Sets
+    products = range(len(products_total))
+    periods = range(time_horizon)
+    workstations = range(workstations_total)
+
     # Decision Variables
-    X = model.addVars(range(products_total), range(time_horizon), lb=0, name="Produced")  # Production
-    S = model.addVars(range(products_total), range(time_horizon), lb=0, name="Sold")      # Sales
-    I = model.addVars(range(products_total), range(time_horizon), lb=0, name="Inventory") # Inventory
-    Y = model.addVars(range(products_total), range(time_horizon), vtype=GRB.BINARY, name="Setup")  # Setup binary variable
+    X = model.addVars(products, periods, lb=0, name="Produced")  # Production
+    S = model.addVars(products, periods, lb=0, name="Sold")      # Sales
+    I = model.addVars(products, periods, lb=0, name="Inventory") # Inventory
+    Y = model.addVars(products, periods, vtype=GRB.BINARY, name="Setup")  # Setup binary variable
 
     # Objective Function: Maximize profit minus holding and setup costs
-    profit_term = quicksum(profit[p] * S[p, t] for p in range(products_total) for t in range(time_horizon))
-    holding_cost_term = quicksum(holding_costs[p] * I[p, t] for p in range(products_total) for t in range(time_horizon))
-    setup_cost_term = quicksum(setup_cost[p] * Y[p, t] for p in range(products_total) for t in range(time_horizon))
+    profit_term = quicksum(profit[p] * S[p, t] for p in products for t in periods)
+    holding_cost_term = quicksum(holding_costs[p] * I[p, t] for p in products for t in periods)
+    setup_cost_term = quicksum(setup_cost[p] * Y[p, t] for p in products for t in periods)
     model.setObjective(profit_term - holding_cost_term - setup_cost_term)
 
     # Constraints
-    for p in range(products_total):
-        for t in range(time_horizon):
+    for p in products:
+        for t in periods:
             # Sales Constraints
             model.addConstr(S[p, t] >= min_sales[p][t], name=f"Min_Sales_{p}_{t}")
             model.addConstr(S[p, t] <= max_demand[p][t], name=f"Max_Demand_{p}_{t}")
@@ -76,44 +82,58 @@ def production_optimization_with_setup(
             model.addConstr(X[p, t] <= Y[p, t] * max_demand[p][t], name=f"Production_Setup_{p}_{t}")
 
     # Capacity Constraints
-    for w in range(workstations_total):
-        for t in range(time_horizon):
+    for w in workstations:
+        for t in periods:
             model.addConstr(
-                quicksum(production_time[p][w] * X[p, t] for p in range(products_total)) <= workstation_capacity[w][t],
+                quicksum(production_time[p][w] * X[p, t] for p in products) <= workstation_capacity[w][t],
                 name=f"Capacity_{w}_{t}"
             )
 
-    # Unique Setup Constraint: Only one product can be set up per period
-    for t in range(time_horizon):
-        model.addConstr(quicksum(Y[p, t] for p in range(products_total)) <= 1, name=f"Unique_Setup_{t}")
+    # Unique Setup Constraint (⚠️ TEMPORARILY REMOVED FOR DEBUGGING)
+    # for t in periods:
+    #     model.addConstr(quicksum(Y[p, t] for p in products) <= 1, name=f"Unique_Setup_{t}")
 
     # Solve the problem
     model.optimize()
-    Profit = model.objVal
 
-    # Extract Results
-    Produced = [[X[p, t].X for t in range(time_horizon)] for p in range(products_total)]
-    Sale = [[S[p, t].X for t in range(time_horizon)] for p in range(products_total)]
-    Inventory = [[I[p, t].X for t in range(time_horizon)] for p in range(products_total)]
-    Setup = [[Y[p, t].X for t in range(time_horizon)] for p in range(products_total)]
+    # Check for infeasibility and compute IIS if needed
+    if model.status == GRB.INFEASIBLE:
+        print("⚠️ Model is infeasible! Computing IIS...")
+        model.computeIIS()
+        model.write("infeasible_model.ilp")  # Save the infeasibility report
+        for c in model.getConstrs():
+            if c.IISConstr:
+                print(f"Infeasible constraint: {c.constrName}")
+        return
 
-    # Calculate Workstation Usage
-    workstation_usage = [
-        [
-            sum((production_time[p][w] * (X[p, t].X or 0)) / workstation_capacity[w][t] * 100 if workstation_capacity[w][t] > 0 else 0
-                for p in range(products_total))
-            for t in range(time_horizon)
+    # Check for unbounded model
+    if model.status == GRB.UNBOUNDED:
+        print("⚠️ Model is unbounded. Ensure all constraints are correct.")
+        return
+
+    # Extract Results Only if Model Solved Optimally
+    if model.status == GRB.OPTIMAL:
+        Produced = [[X[p, t].X for t in periods] for p in products]
+        Sold = [[S[p, t].X for t in periods] for p in products]
+        Inventory = [[I[p, t].X for t in periods] for p in products]
+        Setup = [[Y[p, t].X for t in periods] for p in products]
+
+        # Calculate workstation usage as a percentage
+        workstation_usage = [
+            [
+                sum((production_time[p][w] * (X[p, t].X or 0)) / workstation_capacity[w][t] * 100
+                    if workstation_capacity[w][t] > 0 else 0 for p in products)
+                for t in periods
+            ]
+            for w in workstations
         ]
-        for w in range(workstations_total)
-    ]
 
-    # Print results
-    print("Produced:", Produced)
-    print("Sale:", Sale)
-    print("Inventory:", Inventory)
-    print("Setup:", Setup)
-    print("Profit:", Profit)
+        # Print results
+        print("Produced:", Produced)
+        print("Sold:", Sold)
+        print("Inventory:", Inventory)
+        print("Setup:", Setup)
+        
+        print("Usage:", workstation_usage)
+        print("Profit:", Profit)
 
-    print("Usage:", workstation_usage)
-
-    print("Usage:", workstation_usage)
