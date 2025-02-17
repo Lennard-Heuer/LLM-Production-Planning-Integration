@@ -110,4 +110,4 @@ def supply_chain_math_model(
     print("Inventory:", Inventory)
     print("Profit:", Profit)
 
-    print("Workstation Utilization:", workstation_usage)
+    print("Usage:", workstation_usage)
