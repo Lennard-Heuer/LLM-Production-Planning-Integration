@@ -128,7 +128,7 @@ def supply_chain_math_model(
 
     # Extract results
     Produced = [[X[i, t].X for t in periods] for i in products]
-    Sold = [[S[i, t].X for t in periods] for i in products]
+    Sale = [[S[i, t].X for t in periods] for i in products]
     Inventory = [[I_plus[i, t].X for t in periods] for i in products]
     Backorders = [[I_minus[i, t].X for t in periods] for i in products]
     Overtime = [[O[j, t].X for t in periods] for j in workstations]
@@ -154,12 +154,13 @@ def supply_chain_math_model(
 
     # Print Results
     print("Produced:", Produced)
-    print("Sold:", Sold)
+    print("Sale:", Sale)
     print("Inventory:", Inventory)
     print("Backorders:", Backorders)
     print("Overtime:", Overtime)
     print("Workforce:", Workforce)
     print("Hires:", Hires)
     print("Layoffs:", Layoffs)
+
     print("Usage:", workstation_usage)
     print("UsageWF:", workforce_usage)
