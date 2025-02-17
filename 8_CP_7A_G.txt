@@ -116,4 +116,4 @@ def supply_chain_optimization_with_yield_loss(
     print("Backorders:", Backorders)
     print("Profit:", Profit)
 
-    print("Workstation Utilization:", workstation_usage)
+    print("Usage:", workstation_usage)
