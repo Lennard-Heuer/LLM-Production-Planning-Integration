@@ -124,4 +124,5 @@ def supply_chain_math_model(
     print("Backorders:", Backorders)
     print("Profit:", Profit)
     print("Overtime:", Overtime)
-    print("Workstation Utilization:", workstation_usage)
+
+    print("Usage:", workstation_usage)
