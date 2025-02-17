@@ -39,35 +39,29 @@ I[i][t] = inventory of product i at end of period t (Ii0 is given as data)
 
 from gurobipy import Model, GRB
 
-def supply_chain_math_model(
-    time_horizon, profit, holding_costs, max_demand, workstation_capacity, 
-    initial_inventory, products_total, workstations_total, min_sales, 
-    production_time, resources_total, resource_requirement, resource_capacity, 
-    capacity_reduction_factor, backorders_penalty, overtime_cost, yield_loss
+def supply_chain_optimization_with_yield_loss(
+    products_total, workstations_total, time_horizon, max_demand, min_sales,
+    production_time, workstation_capacity, profit, holding_costs, initial_inventory, yield_loss
 ):
     # Create the problem
-    model = Model("Supply_Chain_Optimization_With_Backorders_Overtime_Yield_Loss")
+    model = Model("Supply_Chain_Optimization_With_Yield_Loss")
     model.ModelSense = GRB.MAXIMIZE
 
     # Index ranges
     products = range(products_total)
     periods = range(time_horizon)
     workstations = range(workstations_total)
-    resources = range(resources_total)
 
     # Decision Variables
     X = model.addVars(products, periods, lb=0, name="Produced")  # Production
     S = model.addVars(products, periods, lb=0, name="Sold")      # Sales
-    I_plus = model.addVars(products, periods, lb=0, name="Inventory") # Positive Inventory
-    I_minus = model.addVars(products, periods, lb=0, name="Backorders") # Backorders
-    O = model.addVars(workstations, periods, lb=0, name="Overtime")  # Overtime
+    I_plus = model.addVars(products, periods, lb=0, name="Inventory")  # Positive Inventory
+    I_minus = model.addVars(products, periods, lb=0, name="Backorders")  # Backorders
 
     # Objective Function
     profit_term = sum(profit[i] * S[i, t] for i in products for t in periods)
     holding_cost_term = sum(holding_costs[i] * I_plus[i, t] for i in products for t in periods)
-    backorders_penalty_term = sum(backorders_penalty[i] * I_minus[i, t] for i in products for t in periods)
-    overtime_cost_term = sum(overtime_cost[j] * O[j, t] for j in workstations for t in periods)
-    model.setObjective(profit_term - holding_cost_term - backorders_penalty_term - overtime_cost_term)
+    model.setObjective(profit_term - holding_cost_term)
 
     # Constraints
     for i in products:
@@ -91,53 +85,35 @@ def supply_chain_math_model(
     for j in workstations:
         for t in periods:
             model.addConstr(
-                sum(production_time[i][j] * X[i, t] / yield_loss[i][j] for i in products) <= workstation_capacity[j][t] * capacity_reduction_factor + O[j, t], 
-                name=f"Adjusted_Workstation_Capacity_{j}_{t}"
-            )
-
-    for r in resources:
-        for t in periods:
-            model.addConstr(
-                sum(resource_requirement[i][r] * X[i, t] for i in products) <= resource_capacity[r][t], 
-                name=f"Resource_Capacity_{r}_{t}"
+                sum(production_time[i][j] * X[i, t] / yield_loss[i][j] for i in products) <= workstation_capacity[j][t], 
+                name=f"Workstation_Capacity_{j}_{t}"
             )
 
     # Solve the problem
     model.optimize()
+    Profit = model.ObjVal
 
     # Extract results
     Produced = [[X[i, t].X for t in periods] for i in products]
-    Sale = [[S[i, t].X for t in periods] for i in products]
+    Sold = [[S[i, t].X for t in periods] for i in products]
     Inventory = [[I_plus[i, t].X for t in periods] for i in products]
     Backorders = [[I_minus[i, t].X for t in periods] for i in products]
-    Overtime = [[O[j, t].X for t in periods] for j in workstations]
 
     # Calculate Workstation Utilization
     workstation_usage = [
         [
-            (sum(production_time[i][j] * (X[i, t].X or 0) / yield_loss[i][j] for i in products) / (workstation_capacity[j][t] * capacity_reduction_factor + (O[j, t].X or 0))) * 100
+            (sum(production_time[i][j] * (X[i, t].X or 0) / yield_loss[i][j] for i in products) / workstation_capacity[j][t]) * 100
             if workstation_capacity[j][t] > 0 else 0
             for t in periods
         ]
         for j in workstations
     ]
 
-    # Calculate Resource Utilization
-    add_capacity_usage = [
-        [
-            (sum(resource_requirement[i][r] * (X[i, t].X or 0) for i in products) / resource_capacity[r][t]) * 100
-            if resource_capacity[r][t] > 0 else 0
-            for t in periods
-        ]
-        for r in resources
-    ]
-
     # Print Results
     print("Produced:", Produced)
-    print("Sale:", Sale)
+    print("Sold:", Sold)
     print("Inventory:", Inventory)
     print("Backorders:", Backorders)
-    print("Overtime:", Overtime)
+    print("Profit:", Profit)
 
-    print("Usage:", workstation_usage)
-    print("UsageADD:", add_capacity_usage)
+    print("Workstation Utilization:", workstation_usage)
