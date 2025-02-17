@@ -42,60 +42,60 @@ def production_optimization_with_promotions(
     demand_increase_rate_promo
 ):
     # Initialize the model
-    model = Model("Production_Optimization_with_Promotions")
-    model.ModelSense = GRB.MAXIMIZE
+    program = Model("Production_Optimization_with_Promotions")
+    program.ModelSense = GRB.MAXIMIZE
 
     # Sets
     promotions = range(len(promotion_cost))
 
     # Decision Variables
-    X = model.addVars(products_total, time_horizon, lb=0, name="Produced")  # Production
-    S = model.addVars(products_total, time_horizon, lb=0, name="Sold")      # Sales
-    I = model.addVars(products_total, time_horizon, lb=0, name="Inventory") # Inventory
-    R = model.addVars(promotions, vtype=GRB.BINARY, name="PromotionUsed")   # Promotion selection
-    D = model.addVars(products_total, time_horizon, lb=0, name="DemandAfterPromotion") # Adjusted demand
+    X = program.addVars(products_total, time_horizon, lb=0, name="Produced")  # Production
+    S = program.addVars(products_total, time_horizon, lb=0, name="Sold")      # Sales
+    I = program.addVars(products_total, time_horizon, lb=0, name="Inventory") # Inventory
+    R = program.addVars(promotions, vtype=GRB.BINARY, name="PromotionUsed")   # Promotion selection
+    D = program.addVars(products_total, time_horizon, lb=0, name="DemandAfterPromotion") # Adjusted demand
 
     # Objective Function: Maximize profit minus holding and promotion costs
     revenue = quicksum(profit[p] * S[p, t] for p in products_total for t in range(time_horizon))
     holding_cost_term = quicksum(holding_costs[p] * I[p, t] for p in products_total for t in range(time_horizon))
     promotion_cost_term = quicksum(promotion_cost[r] * R[r] for r in promotions)
-    model.setObjective(revenue - holding_cost_term - promotion_cost_term)
+    program.setObjective(revenue - holding_cost_term - promotion_cost_term)
 
     # Constraints
     # (1) Promotion demand adjustment
     for p in products_total:
         for t in range(time_horizon):
-            model.addConstr(D[p, t] == max_demand[p][t] * (
+            program.addConstr(D[p, t] == max_demand[p][t] * (
                 1 + quicksum(demand_increase_rate_promo[r][p][t] * R[r] for r in promotions)
             ), name=f"Adjusted_Demand_{p}_{t}")
 
     # (2) At most one promotion
-    model.addConstr(quicksum(R[r] for r in promotions) <= 1, name="At_Most_One_Promotion")
+    program.addConstr(quicksum(R[r] for r in promotions) <= 1, name="At_Most_One_Promotion")
 
     # (3) Sales constraints
     for p in products_total:
         for t in range(time_horizon):
-            model.addConstr(S[p, t] >= min_sales[p][t], name=f"Min_Sales_{p}_{t}")
-            model.addConstr(S[p, t] <= D[p, t], name=f"MaxDemand_{p}_{t}")
+            program.addConstr(S[p, t] >= min_sales[p][t], name=f"Min_Sales_{p}_{t}")
+            program.addConstr(S[p, t] <= D[p, t], name=f"MaxDemand_{p}_{t}")
 
     # (4) Inventory balance constraints
     for p in products_total:
         for t in range(time_horizon):
             if t == 0:
-                model.addConstr(I[p, t] == initial_inventory[p] + X[p, t] - S[p, t], name=f"Inventory_Balance_{p}_{t}")
+                program.addConstr(I[p, t] == initial_inventory[p] + X[p, t] - S[p, t], name=f"Inventory_Balance_{p}_{t}")
             else:
-                model.addConstr(I[p, t] == I[p, t - 1] + X[p, t] - S[p, t], name=f"Inventory_Balance_{p}_{t}")
+                program.addConstr(I[p, t] == I[p, t - 1] + X[p, t] - S[p, t], name=f"Inventory_Balance_{p}_{t}")
 
     # (5) Workstation capacity constraints
     for w in range(workstations_total):
         for t in range(time_horizon):
-            model.addConstr(
+            program.addConstr(
                 quicksum(production_time[p][w] * X[p, t] for p in products_total) <= workstation_capacity[w][t],
                 name=f"Capacity_{w}_{t}"
             )
 
     # Solve the problem
-    model.optimize()
+    program.optimize()
 
     # Collect Results
     Produced = [[X[p, t].X for t in range(time_horizon)] for p in products_total]
@@ -118,21 +118,11 @@ def production_optimization_with_promotions(
     print("Produced:", Produced)
     print("Sale:", Sale)
     print("Inventory:", Inventory)
+
     print("Demand After Promotion (D):", DemandActual)
     print("Promotion Used (R[r]):", PromotionUsed)
 
     print("Usage:", workstation_usage)
-
-    return {
-        "Produced": Produced,
-        "Sold": Sold,
-        "Inventory": Inventory,
-        "DemandActual": DemandActual,
-        "PromotionUsed": PromotionUsed,
-        "WorkstationUsage": workstation_usage,
-        "ObjectiveValue": model.objVal
-    }
-
 
 
 # -------------------------------------------------------------------------
