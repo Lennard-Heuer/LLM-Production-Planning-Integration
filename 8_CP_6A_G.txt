@@ -40,14 +40,13 @@ S[i][t] = amount of product i sold in period t
 I[i][t] = inventory of product i at end of period t (Ii0 is given as data)
 """
 
-
 from gurobipy import Model, GRB
 
 def supply_chain_math_model(
     time_horizon, profit, holding_costs, max_demand, workstation_capacity, 
     initial_inventory, products_total, workstations_total, min_sales, 
     production_time, resources_total, resource_requirement, resource_capacity, 
-    capacity_reduction_factor, backorders_penalty, overtime_cost
+    backorders_penalty, overtime_cost
 ):
     # Create the problem
     problem = Model("Supply_Chain_Optimization_With_Backorders_And_Overtime")
@@ -62,8 +61,8 @@ def supply_chain_math_model(
     # Decision Variables
     X = problem.addVars(products, periods, lb=0, name="Produced")  # Production
     S = problem.addVars(products, periods, lb=0, name="Sold")      # Sales
-    I_plus = problem.addVars(products, periods, lb=0, name="Inventory") # Positive Inventory
-    I_minus = problem.addVars(products, periods, lb=0, name="Backorders") # Backorders
+    I_plus = problem.addVars(products, periods, lb=0, name="Inventory")  # Positive Inventory
+    I_minus = problem.addVars(products, periods, lb=0, name="Backorders")  # Backorders
     O = problem.addVars(workstations, periods, lb=0, name="Overtime")  # Overtime
 
     # Objective Function
@@ -95,21 +94,20 @@ def supply_chain_math_model(
     for j in workstations:
         for t in periods:
             problem.addConstr(
-                sum(production_time[i][j] * X[i, t] for i in products) <= workstation_capacity[j][t] * capacity_reduction_factor[j] + O[j, t], 
-                name=f"Adjusted_Workstation_Capacity_{j}_{t}"
+                sum(production_time[i][j] * X[i, t] for i in products) <= workstation_capacity[j][t] + O[j, t], 
+                name=f"Workstation_Capacity_{j}_Period_{t}"
             )
 
     for r in resources:
         for t in periods:
             problem.addConstr(
                 sum(resource_requirement[i][r] * X[i, t] for i in products) <= resource_capacity[r][t], 
-                name=f"Resource_Capacity_{r}_{t}"
+                name=f"Resource_Capacity_{r}_Period_{t}"
             )
 
     # Solve the problem
     problem.optimize()
     Profit = problem.ObjVal
-
 
     # Extract results
     Produced = [[X[i, t].X for t in periods] for i in products]
@@ -121,7 +119,7 @@ def supply_chain_math_model(
     # Calculate Workstation Utilization
     workstation_usage = [
         [
-            (sum(production_time[i][j] * (X[i, t].X or 0) for i in products) / (workstation_capacity[j][t] * capacity_reduction_factor[j] + (O[j, t].X or 0))) * 100
+            (sum(production_time[i][j] * (X[i, t].X or 0) for i in products) / (workstation_capacity[j][t] + (O[j, t].X or 0))) * 100
             if workstation_capacity[j][t] > 0 else 0
             for t in periods
         ]
@@ -129,7 +127,7 @@ def supply_chain_math_model(
     ]
 
     # Calculate Resource Utilization
-    add_capacity_usage = [
+    resource_usage = [
         [
             (sum(resource_requirement[i][r] * (X[i, t].X or 0) for i in products) / resource_capacity[r][t]) * 100
             if resource_capacity[r][t] > 0 else 0
@@ -146,5 +144,5 @@ def supply_chain_math_model(
     print("Profit:", Profit)
 
     print("Overtime:", Overtime)
-    print("Usage:", workstation_usage)
-    print("UsageADD:", add_capacity_usage)
+    print("Workstation Utilization:", workstation_usage)
+    print("Resource Utilization:", resource_usage)
