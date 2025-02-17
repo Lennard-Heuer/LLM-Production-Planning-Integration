@@ -106,7 +106,7 @@ def supply_chain_math_model(
     # Calculate Workstation Utilization
     workstation_usage = [
         [
-            (sum(production_time[i][j] * (X[i, t].X or 0) for i in products) / (workstation_capacity[j][t] * capacity_reduction_factor)) * 100
+            (sum(production_time[i][j] * (X[i, t].X or 0) for i in products) / (workstation_capacity[j][t] * capacity_reduction_factor[j])) * 100
             if workstation_capacity[j][t] > 0 else 0
             for t in periods
         ]
