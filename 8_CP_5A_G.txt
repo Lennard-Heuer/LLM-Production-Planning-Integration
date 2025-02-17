@@ -37,13 +37,13 @@ X[i][t] = amount of product i produced in period t
 S[i][t] = amount of product i sold in period t
 I[i][t] = inventory of product i at end of period t (Ii0 is given as data)
 """
+
 from gurobipy import Model, GRB
 
 def supply_chain_math_model(
     time_horizon, profit, holding_costs, max_demand, workstation_capacity, 
     initial_inventory, products_total, workstations_total, min_sales, 
-    production_time, resources_total, resource_requirement, resource_capacity, 
-    backorders_penalty
+    production_time, backorders_penalty
 ):
     # Create the problem
     problem = Model("Supply_Chain_Optimization_With_Backorders")
@@ -53,7 +53,6 @@ def supply_chain_math_model(
     products = range(products_total)
     periods = range(time_horizon)
     workstations = range(workstations_total)
-    resources = range(resources_total)
 
     # Decision Variables
     X = problem.addVars(products, periods, lb=0, name="Produced")  # Production
@@ -93,13 +92,6 @@ def supply_chain_math_model(
                 name=f"Workstation_Capacity_{j}_{t}"
             )
 
-    for r in resources:
-        for t in periods:
-            problem.addConstr(
-                sum(resource_requirement[i][r] * X[i, t] for i in products) <= resource_capacity[r][t], 
-                name=f"Resource_Capacity_{r}_{t}"
-            )
-
     # Solve the problem
     problem.optimize()
     Profit = problem.ObjVal
@@ -120,16 +112,6 @@ def supply_chain_math_model(
         for j in workstations
     ]
 
-    # Calculate Resource Utilization
-    resource_usage = [
-        [
-            (sum(resource_requirement[i][r] * (X[i, t].X or 0) for i in products) / resource_capacity[r][t]) * 100
-            if resource_capacity[r][t] > 0 else 0
-            for t in periods
-        ]
-        for r in resources
-    ]
-
     # Print Results
     print("Produced:", Produced)
     print("Sale:", Sale)
@@ -138,4 +120,3 @@ def supply_chain_math_model(
     print("Profit:", Profit)
 
     print("Workstation Utilization:", workstation_usage)
-    print("Resource Utilization:", resource_usage)
