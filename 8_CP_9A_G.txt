@@ -48,19 +48,19 @@ def production_optimization_with_setup(
     model.ModelSense = GRB.MAXIMIZE
 
     # Decision Variables
-    X = model.addVars(products_total, time_horizon, lb=0, name="Produced")  # Production
-    S = model.addVars(products_total, time_horizon, lb=0, name="Sold")      # Sales
-    I = model.addVars(products_total, time_horizon, lb=0, name="Inventory") # Inventory
-    Y = model.addVars(products_total, time_horizon, vtype=GRB.BINARY, name="Setup")  # Setup binary variable
+    X = model.addVars(range(products_total), range(time_horizon), lb=0, name="Produced")  # Production
+    S = model.addVars(range(products_total), range(time_horizon), lb=0, name="Sold")      # Sales
+    I = model.addVars(range(products_total), range(time_horizon), lb=0, name="Inventory") # Inventory
+    Y = model.addVars(range(products_total), range(time_horizon), vtype=GRB.BINARY, name="Setup")  # Setup binary variable
 
     # Objective Function: Maximize profit minus holding and setup costs
-    profit_term = quicksum(profit[p] * S[p, t] for p in products_total for t in range(time_horizon))
-    holding_cost_term = quicksum(holding_costs[p] * I[p, t] for p in products_total for t in range(time_horizon))
-    setup_cost_term = quicksum(setup_cost[p] * Y[p, t] for p in products_total for t in range(time_horizon))
+    profit_term = quicksum(profit[p] * S[p, t] for p in range(products_total) for t in range(time_horizon))
+    holding_cost_term = quicksum(holding_costs[p] * I[p, t] for p in range(products_total) for t in range(time_horizon))
+    setup_cost_term = quicksum(setup_cost[p] * Y[p, t] for p in range(products_total) for t in range(time_horizon))
     model.setObjective(profit_term - holding_cost_term - setup_cost_term)
 
     # Constraints
-    for p in products_total:
+    for p in range(products_total):
         for t in range(time_horizon):
             # Sales Constraints
             model.addConstr(S[p, t] >= min_sales[p][t], name=f"Min_Sales_{p}_{t}")
@@ -79,29 +79,29 @@ def production_optimization_with_setup(
     for w in range(workstations_total):
         for t in range(time_horizon):
             model.addConstr(
-                quicksum(production_time[p][w] * X[p, t] for p in products_total) <= workstation_capacity[w][t],
+                quicksum(production_time[p][w] * X[p, t] for p in range(products_total)) <= workstation_capacity[w][t],
                 name=f"Capacity_{w}_{t}"
             )
 
-    # Unique Setup Constraint
+    # Unique Setup Constraint: Only one product can be set up per period
     for t in range(time_horizon):
-        model.addConstr(quicksum(Y[p, t] for p in products_total) <= 1, name=f"Unique_Setup_{t}")
+        model.addConstr(quicksum(Y[p, t] for p in range(products_total)) <= 1, name=f"Unique_Setup_{t}")
 
     # Solve the problem
     model.optimize()
-
-    # Collect Results
-    Produced = [[X[p, t].X for t in range(time_horizon)] for p in products_total]
-    Sale = [[S[p, t].X for t in range(time_horizon)] for p in products_total]
-    Inventory = [[I[p, t].X for t in range(time_horizon)] for p in products_total]
-    Setup = [[Y[p, t].X for t in range(time_horizon)] for p in products_total]
     Profit = model.objVal
 
-    # Calculate workstation usage as a percentage
+    # Extract Results
+    Produced = [[X[p, t].X for t in range(time_horizon)] for p in range(products_total)]
+    Sale = [[S[p, t].X for t in range(time_horizon)] for p in range(products_total)]
+    Inventory = [[I[p, t].X for t in range(time_horizon)] for p in range(products_total)]
+    Setup = [[Y[p, t].X for t in range(time_horizon)] for p in range(products_total)]
+
+    # Calculate Workstation Usage
     workstation_usage = [
         [
             sum((production_time[p][w] * (X[p, t].X or 0)) / workstation_capacity[w][t] * 100 if workstation_capacity[w][t] > 0 else 0
-                for p in products_total)
+                for p in range(products_total))
             for t in range(time_horizon)
         ]
         for w in range(workstations_total)
@@ -112,5 +112,8 @@ def production_optimization_with_setup(
     print("Sale:", Sale)
     print("Inventory:", Inventory)
     print("Setup:", Setup)
+    print("Profit:", Profit)
+
+    print("Usage:", workstation_usage)
 
     print("Usage:", workstation_usage)
