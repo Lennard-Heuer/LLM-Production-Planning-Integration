@@ -99,7 +99,7 @@ def production_optimization_with_promotions(
 
     # Collect Results
     Produced = [[X[p, t].X for t in range(time_horizon)] for p in products_total]
-    Sold = [[S[p, t].X for t in range(time_horizon)] for p in products_total]
+    Sale = [[S[p, t].X for t in range(time_horizon)] for p in products_total]
     Inventory = [[I[p, t].X for t in range(time_horizon)] for p in products_total]
     PromotionUsed = [R[r].X for r in promotions]
     DemandActual = [[D[p, t].X for t in range(time_horizon)] for p in products_total]
@@ -116,11 +116,12 @@ def production_optimization_with_promotions(
 
     # Print results
     print("Produced:", Produced)
-    print("Sold:", Sold)
+    print("Sale:", Sale)
     print("Inventory:", Inventory)
     print("Demand After Promotion (D):", DemandActual)
     print("Promotion Used (R[r]):", PromotionUsed)
-    print("Workstation Utilization (%):", workstation_usage)
+
+    print("Usage:", workstation_usage)
 
     return {
         "Produced": Produced,
