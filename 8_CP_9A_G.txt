@@ -45,8 +45,8 @@ def production_optimization_with_setup(
     production_time, setup_cost
 ):
     # Initialize the model
-    model = Model("Production_Optimization_with_Setup")
-    model.ModelSense = GRB.MAXIMIZE
+    problem = Model("Production_Optimization_with_Setup")
+    problem.ModelSense = GRB.MAXIMIZE
 
     # Sets
     products = range(len(products_total))
@@ -54,66 +54,66 @@ def production_optimization_with_setup(
     workstations = range(workstations_total)
 
     # Decision Variables
-    X = model.addVars(products, periods, lb=0, name="Produced")  # Production
-    S = model.addVars(products, periods, lb=0, name="Sold")      # Sales
-    I = model.addVars(products, periods, lb=0, name="Inventory") # Inventory
-    Y = model.addVars(products, periods, vtype=GRB.BINARY, name="Setup")  # Setup binary variable
+    X = problem.addVars(products, periods, lb=0, name="Produced")  # Production
+    S = problem.addVars(products, periods, lb=0, name="Sold")      # Sales
+    I = problem.addVars(products, periods, lb=0, name="Inventory") # Inventory
+    Y = problem.addVars(products, periods, vtype=GRB.BINARY, name="Setup")  # Setup binary variable
 
     # Objective Function: Maximize profit minus holding and setup costs
     profit_term = quicksum(profit[p] * S[p, t] for p in products for t in periods)
     holding_cost_term = quicksum(holding_costs[p] * I[p, t] for p in products for t in periods)
     setup_cost_term = quicksum(setup_cost[p] * Y[p, t] for p in products for t in periods)
-    model.setObjective(profit_term - holding_cost_term - setup_cost_term)
+    problem.setObjective(profit_term - holding_cost_term - setup_cost_term)
 
     # Constraints
     for p in products:
         for t in periods:
             # Sales Constraints
-            model.addConstr(S[p, t] >= min_sales[p][t], name=f"Min_Sales_{p}_{t}")
-            model.addConstr(S[p, t] <= max_demand[p][t], name=f"Max_Demand_{p}_{t}")
+            problem.addConstr(S[p, t] >= min_sales[p][t], name=f"Min_Sales_{p}_{t}")
+            problem.addConstr(S[p, t] <= max_demand[p][t], name=f"Max_Demand_{p}_{t}")
 
             # Inventory Balance Constraints
             if t == 0:
-                model.addConstr(I[p, t] == initial_inventory[p] + X[p, t] - S[p, t], name=f"Inventory_Balance_{p}_{t}")
+                problem.addConstr(I[p, t] == initial_inventory[p] + X[p, t] - S[p, t], name=f"Inventory_Balance_{p}_{t}")
             else:
-                model.addConstr(I[p, t] == I[p, t - 1] + X[p, t] - S[p, t], name=f"Inventory_Balance_{p}_{t}")
+                problem.addConstr(I[p, t] == I[p, t - 1] + X[p, t] - S[p, t], name=f"Inventory_Balance_{p}_{t}")
 
             # Production Setup Constraints
-            model.addConstr(X[p, t] <= Y[p, t] * max_demand[p][t], name=f"Production_Setup_{p}_{t}")
+            problem.addConstr(X[p, t] <= Y[p, t] * max_demand[p][t], name=f"Production_Setup_{p}_{t}")
 
     # Capacity Constraints
     for w in workstations:
         for t in periods:
-            model.addConstr(
+            problem.addConstr(
                 quicksum(production_time[p][w] * X[p, t] for p in products) <= workstation_capacity[w][t],
                 name=f"Capacity_{w}_{t}"
             )
 
     # Unique Setup Constraint (⚠️ TEMPORARILY REMOVED FOR DEBUGGING)
     # for t in periods:
-    #     model.addConstr(quicksum(Y[p, t] for p in products) <= 1, name=f"Unique_Setup_{t}")
+    #     problem.addConstr(quicksum(Y[p, t] for p in products) <= 1, name=f"Unique_Setup_{t}")
 
     # Solve the problem
-    model.optimize()
+    problem.optimize()
     Profit = problem.ObjVal
 
     # Check for infeasibility and compute IIS if needed
-    if model.status == GRB.INFEASIBLE:
+    if problem.status == GRB.INFEASIBLE:
         print("⚠️ Model is infeasible! Computing IIS...")
-        model.computeIIS()
-        model.write("infeasible_model.ilp")  # Save the infeasibility report
-        for c in model.getConstrs():
+        problem.computeIIS()
+        problem.write("infeasible_model.ilp")  # Save the infeasibility report
+        for c in problem.getConstrs():
             if c.IISConstr:
                 print(f"Infeasible constraint: {c.constrName}")
         return
 
     # Check for unbounded model
-    if model.status == GRB.UNBOUNDED:
+    if problem.status == GRB.UNBOUNDED:
         print("⚠️ Model is unbounded. Ensure all constraints are correct.")
         return
 
     # Extract Results Only if Model Solved Optimally
-    if model.status == GRB.OPTIMAL:
+    if problem.status == GRB.OPTIMAL:
         Produced = [[X[p, t].X for t in periods] for p in products]
         Sold = [[S[p, t].X for t in periods] for p in products]
         Inventory = [[I[p, t].X for t in periods] for p in products]
