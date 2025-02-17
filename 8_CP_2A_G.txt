@@ -78,6 +78,8 @@ def optimize_production_plan(time_horizon, profit, holding_costs, max_demand, wo
     # Solve the problem
     problem.optimize()
 
+    Profit = problem.ObjVal
+
     # Extract results
     Produced = [[X[i, t].X for t in periods] for i in products]
     Sale = [[S[i, t].X for t in periods] for i in products]
@@ -97,3 +99,4 @@ def optimize_production_plan(time_horizon, profit, holding_costs, max_demand, wo
     print("Sale:", Sale)
     print("Stock:", Inventory)
     print("Usage:", workstation_usage)
+    print("Profit:", Profit)
