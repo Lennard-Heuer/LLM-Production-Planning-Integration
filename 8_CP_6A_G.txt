@@ -45,8 +45,7 @@ from gurobipy import Model, GRB
 def supply_chain_math_model(
     time_horizon, profit, holding_costs, max_demand, workstation_capacity, 
     initial_inventory, products_total, workstations_total, min_sales, 
-    production_time, resources_total, resource_requirement, resource_capacity, 
-    backorders_penalty, overtime_cost
+    production_time, backorders_penalty, overtime_cost
 ):
     # Create the problem
     problem = Model("Supply_Chain_Optimization_With_Backorders_And_Overtime")
@@ -56,7 +55,6 @@ def supply_chain_math_model(
     products = range(products_total)
     periods = range(time_horizon)
     workstations = range(workstations_total)
-    resources = range(resources_total)
 
     # Decision Variables
     X = problem.addVars(products, periods, lb=0, name="Produced")  # Production
@@ -98,13 +96,6 @@ def supply_chain_math_model(
                 name=f"Workstation_Capacity_{j}_Period_{t}"
             )
 
-    for r in resources:
-        for t in periods:
-            problem.addConstr(
-                sum(resource_requirement[i][r] * X[i, t] for i in products) <= resource_capacity[r][t], 
-                name=f"Resource_Capacity_{r}_Period_{t}"
-            )
-
     # Solve the problem
     problem.optimize()
     Profit = problem.ObjVal
@@ -126,23 +117,11 @@ def supply_chain_math_model(
         for j in workstations
     ]
 
-    # Calculate Resource Utilization
-    resource_usage = [
-        [
-            (sum(resource_requirement[i][r] * (X[i, t].X or 0) for i in products) / resource_capacity[r][t]) * 100
-            if resource_capacity[r][t] > 0 else 0
-            for t in periods
-        ]
-        for r in resources
-    ]
-
     # Print Results
     print("Produced:", Produced)
     print("Sale:", Sale)
     print("Inventory:", Inventory)
     print("Backorders:", Backorders)
     print("Profit:", Profit)
-
     print("Overtime:", Overtime)
     print("Workstation Utilization:", workstation_usage)
-    print("Resource Utilization:", resource_usage)
