@@ -92,7 +92,7 @@ def production_optimization_with_setup(
 
     # Collect Results
     Produced = [[X[p, t].X for t in range(time_horizon)] for p in products_total]
-    Sold = [[S[p, t].X for t in range(time_horizon)] for p in products_total]
+    Sale = [[S[p, t].X for t in range(time_horizon)] for p in products_total]
     Inventory = [[I[p, t].X for t in range(time_horizon)] for p in products_total]
     Setup = [[Y[p, t].X for t in range(time_horizon)] for p in products_total]
     Profit = model.objVal
@@ -109,7 +109,8 @@ def production_optimization_with_setup(
 
     # Print results
     print("Produced:", Produced)
-    print("Sold:", Sold)
+    print("Sale:", Sale)
     print("Inventory:", Inventory)
     print("Setup:", Setup)
+
     print("Usage:", workstation_usage)
