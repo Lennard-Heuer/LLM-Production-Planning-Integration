@@ -131,8 +131,9 @@ def production_optimization_with_setup(
 
         # Print results
         print("Produced:", Produced)
-        print("Sold:", Sold)
+        print("Sale:", Sale)
         print("Inventory:", Inventory)
+
         print("Profit:", Profit)
         print("Setup:", Setup)
         
